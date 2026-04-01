@@ -1,0 +1,69 @@
+# Universal .gitignore for GenMark Monorepo
+
+# [Backend] Python
+__pycache__/
+*.py[cod]
+*$py.class
+Backend/.env*
+Backend/.venv/
+Backend/instance/
+Backend/htmlcov/
+Backend/.pytest_cache/
+Backend/.mypy_cache/
+Backend/.tox/
+Backend/.nox/
+Backend/.coverage
+Backend/.coverage.*
+Backend/cache/
+Backend/nosetests.xml
+Backend/coverage.xml
+Backend/*.db
+Backend/*.db-journal
+Backend/Model/
+Backend/*.safetensors
+Backend/secrets/
+
+# [Frontend] Node
+Frontend/node_modules/
+Frontend/dist/
+Frontend/.env
+Frontend/*.log
+Frontend/.eslintcache
+Frontend/.prettiercache
+Frontend/.turbo/
+
+# [Docker]
+*.log
+docker-compose.override.yml
+.docker/
+
+# [IDE]
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# [Custom Models] - Prevent 4GB uploads
+Text to Text model/Model/
+Image to Text Model/
+Model/
+*.safetensors
+*.bin
+*.pt
+*.onnx
+
+# [Secrets & Keys]
+*.env*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.jks
+secrets.json
+credentials.json
+auth.json
+*.pcap
+*.cap

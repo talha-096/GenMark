@@ -1,0 +1,27 @@
+# Core Flask
+flask
+flask-cors
+flask-jwt-extended
+flask-bcrypt
+flask-limiter
+flask-apscheduler
+
+# Documentation
+flasgger
+
+# Database
+pymongo
+dnspython
+
+# Utilities
+python-dotenv
+requests
+python-jose[cryptography]==3.3.0
+flake8==7.0.0
+pytest==8.0.0
+pytest-flask==1.3.0
+
+# AI Integration
+openai
+anthropic
+google-generativeai

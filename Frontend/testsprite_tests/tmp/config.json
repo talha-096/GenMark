@@ -1,0 +1,20 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:5173",
+  "loginUser": "talha@example.com",
+  "loginPassword": "245255nust",
+  "executionArgs": {
+    "projectName": "GenMark",
+    "projectPath": "d:\\GenMark\\Frontend",
+    "testIds": [],
+    "additionalInstruction": "Test the full frontend codebase with consolidated providers and mocks enabled. The API layer now returns mock data with a 500ms delay. Ensure the login page renders and doesn't time out. The app now handles headless browsers more robustly with ErrorBoundaries.",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-8I5VjRjQ4cf5jthwM_6pt1UUcAQxytO3kyH-GHK21ncJLUzd5XhHKnlCwya3nfu0Rr-6NhtmpTncJHRl-9Nv2bJ9oYRcaX1mAlR7uz6zAtd1eXc0xb69ta4tjwXzFd5RriI"
+    }
+  },
+  "serverPort": 51976,
+  "proxy": "http://314beef4-0226-4024-b2be-62d29f1ff054:PKa0hkwnmsrYdFJr5tVrPFLq19XDPrsV@tun.testsprite.com:8080"
+}

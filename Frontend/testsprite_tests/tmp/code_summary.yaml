@@ -1,0 +1,91 @@
+version: "2"
+type: frontend
+tech_stack:
+  - TypeScript
+  - React
+  - Vite
+  - Tailwind CSS
+  - Radix UI
+  - Framer Motion
+  - GSAP
+  - Three.js
+  - TanStack Query
+routes:
+  - path: /
+    file: src/pages/Home.tsx
+    auth_required: false
+    description: Landing page
+  - path: /features
+    file: src/pages/Features.tsx
+    auth_required: false
+    description: Features overview
+  - path: /engine
+    file: src/pages/Engine.tsx
+    auth_required: false
+    description: Engine details
+  - path: /enterprise
+    file: src/pages/Enterprise.tsx
+    auth_required: false
+    description: Enterprise solutions
+  - path: /pricing
+    file: src/pages/Pricing.tsx
+    auth_required: false
+    description: Pricing plans
+  - path: /about
+    file: src/pages/About.tsx
+    auth_required: false
+    description: About GenMark
+  - path: /login
+    file: src/pages/auth/Login.tsx
+    auth_required: false
+    description: User login
+  - path: /signup
+    file: src/pages/auth/Signup.tsx
+    auth_required: false
+    description: User registration
+  - path: /dashboard
+    file: src/pages/dashboard/Overview.tsx
+    auth_required: true
+    description: Dashboard overview
+  - path: /dashboard/image
+    file: src/pages/dashboard/TextToImage.tsx
+    auth_required: true
+    description: Text to Image generation
+  - path: /dashboard/history
+    file: src/pages/dashboard/History.tsx
+    auth_required: true
+    description: Generation history
+  - path: /dashboard/profile
+    file: src/pages/dashboard/Profile.tsx
+    auth_required: true
+    description: User profile
+features:
+  - name: User Authentication
+    description: Secure login and signup for GenMark users.
+    files:
+      - src/pages/auth/Login.tsx
+      - src/pages/auth/Signup.tsx
+      - src/providers/AuthProvider.tsx
+    entry_route: /login
+    user_interactions:
+      - Fill email address
+      - Fill password
+      - Click Login button
+    api_calls:
+      - method: POST
+        endpoint: /api/auth/login
+    auth_required: false
+  - name: Text to Image Generation
+    description: Generate marketing visuals from text prompts.
+    files:
+      - src/pages/dashboard/TextToImage.tsx
+    entry_route: /dashboard/image
+    user_interactions:
+      - Enter text prompt
+      - Select generation settings
+      - Click Generate button
+    api_calls:
+      - method: POST
+        endpoint: /api/generate/image
+    auth_required: true
+known_limitations: []

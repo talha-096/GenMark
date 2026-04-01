@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* === BACKGROUNDS === */
+    --background:       220 22% 4%;      /* #070b14 — void black with blue tint */
+    --surface:          220 20% 7%;      /* #0d1220 — card base */
+    --surface-raised:   220 18% 10%;     /* elevated panels */
+
+    /* === PRIMARY: Trust Blue === */
+    --primary:          217 91% 60%;     /* #3b82f6 — electric blue */
+    --primary-dark:     217 91% 40%;     /* deeper blue for gradients */
+    --primary-foreground: 0 0% 100%;
+
+    /* === SECONDARY: Growth Orange === */
+    --secondary:        24 95% 60%;      /* #f97316 — warm growth orange */
+    --secondary-foreground: 0 0% 100%;
+
+    /* === ACCENT: Neural Violet === */
+    --accent:           270 85% 65%;     /* #a855f7 — neural violet */
+    --accent-foreground: 0 0% 100%;
+
+    /* === SEMANTIC === */
+    --code:             142 71% 45%;     /* #22c55e — success green */
+    --warning:          38 92% 50%;      /* #f59e0b — amber */
+    --destructive:      0 84% 60%;       /* #ef4444 — red */
+
+    /* === TEXT === */
+    --foreground:       210 40% 96%;     /* near-white */
+    --muted-foreground: 215 20% 55%;     /* dimmed text */
+
+    /* === BORDERS === */
+    --border:           217 30% 14%;
+    --border-glow:      217 91% 60% / 0.2;
+
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: auto; } /* Lenis handles smooth scroll */
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Manrope', system-ui, sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer utilities {
+  /* Gradient text utility */
+  .gradient-text {
+    background: linear-gradient(135deg,
+      hsl(var(--primary)) 0%,
+      #ffffff 45%,
+      hsl(var(--secondary)) 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 4s linear infinite;
+  }
+
+  /* Neural gradient variant */
+  .gradient-text-neural {
+    background: linear-gradient(135deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--accent)) 50%,
+      hsl(var(--secondary)) 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 5s linear infinite;
+  }
+}
