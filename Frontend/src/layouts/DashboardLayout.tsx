@@ -14,7 +14,9 @@ import {
   Search,
   ChevronRight,
   Video,
-  FileSearch
+  FileSearch,
+  Briefcase,
+  Palette
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -40,6 +42,8 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
 
   const navItems = [
     { label: "Overview", path: "/dashboard", icon: LayoutDashboard },
+    { label: "Projects", path: "/dashboard/projects", icon: Briefcase },
+    { label: "Brand Kit", path: "/dashboard/brand", icon: Palette },
     { label: "Text to Copy", path: "/dashboard/text", icon: Sparkles },
     { label: "Text to Image", path: "/dashboard/image", icon: ImageIcon },
     { label: "Text to Video", path: "/dashboard/video", icon: Video, soon: true },

@@ -11,7 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    
+
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@1.10.0
+      with:
+        mongodb-version: '6.0'
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -35,6 +40,10 @@ jobs:
       run: |
         cd Backend
         pytest
+      env:
+        MONGO_URI: mongodb://localhost:27017/genmark_test
+        JWT_SECRET_KEY: test-secret-key-123
+        FLASK_ENV: testing
 
   frontend-lint-test:
     runs-on: ubuntu-latest
@@ -42,7 +51,7 @@ jobs:
     - uses: actions/checkout@v4
     
     - name: Set up Node.js
-      uses: actions/setup-python@v5
+      uses: actions/setup-node@v4
       with:
         node-version: '20'
         

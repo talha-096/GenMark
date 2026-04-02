@@ -12,8 +12,11 @@ import {
   Zap,
   CheckCircle2,
   Terminal,
-  ChevronDown
+  ChevronDown,
+  Palette,
+  ShieldCheck
 } from "lucide-react";
+import { Button } from "@/components/shared/Button";
 import { toast } from "sonner";
 
 export const TextToImage = () => {
@@ -24,13 +27,26 @@ export const TextToImage = () => {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [aspectRatio, setAspectRatio] = useState("16:9");
   const [history, setHistory] = useState<string[]>([]);
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
+
+  const brands = [
+    { id: "genmark", name: "GenMark Pro", colors: ["#3B82F6", "#8B5CF6"], style: "Minimalist / High-Tech" },
+    { id: "neopulse", name: "NeoPulse", colors: ["#10B981", "#3B82F6"], style: "Eco-Futurism" },
+    { id: "vanguard", name: "Vanguard", colors: ["#EF4444", "#F59E0B"], style: "Bold / Industrial" }
+  ];
 
   const startGeneration = () => {
     if (!prompt) return;
     setIsGenerating(true);
     setProgress(0);
     setGeneratedImage(null);
-    setLogs(["[system] initializing neural core...", "[auth] verifying enterprise token..."]);
+    
+    // Applying brand constraints to logs
+    setLogs([
+        "[system] initializing neural core...", 
+        "[auth] verifying enterprise token...",
+        selectedBrand ? `[brand] locking font and palette: ${brands.find(b => b.id === selectedBrand)?.style}` : "[brand] using agnostic aesthetic"
+    ]);
 
     const interval = setInterval(() => {
       setProgress(prev => {
@@ -58,7 +74,7 @@ export const TextToImage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 pb-20">
+    <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 pb-20 animate-in fade-in duration-700">
       {/* Left Sidebar: Controls */}
       <div className="lg:col-span-4 space-y-6">
         <GlassCard className="p-8">
@@ -70,6 +86,39 @@ export const TextToImage = () => {
            </div>
            
            <div className="space-y-6">
+              {/* Brand Kit Selection */}
+              <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Brand Alignment</label>
+                    <Palette size={12} className="text-muted-foreground" />
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                      {brands.map(brand => (
+                          <button
+                            key={brand.id}
+                            onClick={() => setSelectedBrand(selectedBrand === brand.id ? null : brand.id)}
+                            className={`p-3 rounded-xl border flex items-center gap-3 transition-all text-left ${
+                                selectedBrand === brand.id 
+                                ? "bg-primary/10 border-primary/50 ring-1 ring-primary/20" 
+                                : "bg-white/5 border-white/10 hover:bg-white/10"
+                            }`}
+                          >
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${brand.colors[0]}, ${brand.colors[1]})` }}>
+                                <ShieldCheck size={16} className="text-white relative z-10" />
+                                <div className="absolute inset-0 bg-black/20" />
+                            </div>
+                            <div>
+                                <div className="text-xs font-bold">{brand.name}</div>
+                                <div className="text-[9px] text-muted-foreground">{brand.style}</div>
+                            </div>
+                            {selectedBrand === brand.id && <CheckCircle2 size={14} className="ml-auto text-primary" />}
+                          </button>
+                      ))}
+                  </div>
+              </div>
+
+              <div className="h-px bg-white/5" />
+
               <div className="space-y-2">
                  <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Neural Prompt</label>
                  <textarea 
@@ -101,20 +150,10 @@ export const TextToImage = () => {
                   </div>
               </div>
 
-              <div className="space-y-4">
-                 <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-                    <span>Neural Fidelity</span>
-                    <span>9.4</span>
-                 </div>
-                 <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-primary w-[94%]" />
-                 </div>
-              </div>
-
-              <button 
+              <Button 
                 onClick={startGeneration}
                 disabled={isGenerating || !prompt}
-                className="w-full py-4 rounded-full bg-primary text-primary-foreground font-bold shadow-glow-sm hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 transition-all flex items-center justify-center gap-3 mt-4"
+                className="w-full h-14 rounded-full font-bold shadow-glow-sm hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 transition-all flex items-center justify-center gap-3 mt-4"
               >
                 {isGenerating ? (
                    <RefreshCw size={20} className="animate-spin" />
@@ -122,7 +161,7 @@ export const TextToImage = () => {
                    <Zap size={20} />
                 )}
                 <span>{isGenerating ? "Synthesizing..." : "Awaken Engine"}</span>
-              </button>
+              </Button>
            </div>
         </GlassCard>
 
@@ -227,12 +266,12 @@ export const TextToImage = () => {
                   onClick={() => {
                      if (history[idx-1]) setGeneratedImage(history[idx-1]);
                      toast.info(`Variant #${idx}`, { description: "Restoring neural state from history..." });
-                  }}
+                   }}
                   className="aspect-square p-0 overflow-hidden group cursor-pointer border-white/5 hover:border-primary/40 transition-all"
                >
                   <div className="h-full w-full bg-white/5 flex items-center justify-center relative">
                      {history[idx-1] ? (
-                        <img src={history[idx-1]} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                        <img src={history[idx-1]} alt={`Variant ${idx}`} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
                      ) : (
                         <Layers className="opacity-10 w-12 h-12" />
                      )}

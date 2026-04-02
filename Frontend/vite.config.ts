@@ -11,8 +11,8 @@ export default defineConfig({
     },
   },
   server: {
-    fs: {
-      allow: ['..', 'C:/Users/idiot/.gemini/antigravity/brain']
+    port: 5173,
+    proxy: {
     }
   },
   test: {

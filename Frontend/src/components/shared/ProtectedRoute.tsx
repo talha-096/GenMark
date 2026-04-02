@@ -1,9 +1,24 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/providers/AuthProvider";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
-export const ProtectedRoute = () => {
-  const { user, isLoading } = useAuth();
+interface ProtectedRouteProps {
+  allowedRoles?: string[];
+}
+
+export const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
+  const { user, isLoading, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && allowedRoles && user) {
+      const userRole = user.plan || user.subscription_plan || "free";
+      if (!allowedRoles.includes(userRole)) {
+        toast.error("Access Restricted: This feature requires a higher tier plan.");
+      }
+    }
+  }, [isLoading, isAuthenticated, allowedRoles, user]);
 
   if (isLoading) {
     return (
@@ -13,5 +28,17 @@ export const ProtectedRoute = () => {
     );
   }
 
-  return user ? <Outlet /> : <Navigate to="/login" replace />;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Basic RBAC check
+  if (allowedRoles && user) {
+    const userRole = user.plan || user.subscription_plan || "free";
+    if (!allowedRoles.includes(userRole)) {
+      return <Navigate to="/dashboard" replace />;
+    }
+  }
+
+  return <Outlet />;
 };

@@ -4,6 +4,7 @@ import { AuthProvider } from "./AuthProvider";
 import { AppQueryProvider } from "./QueryProvider";
 import { SmoothScrollProvider } from "./SmoothScrollProvider";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
+import { Toaster } from "sonner";
 
 interface AppProvidersProps {
   children: ReactNode;
@@ -22,6 +23,7 @@ export const AppProviders = ({ children }: AppProvidersProps) => {
           <SmoothScrollProvider>
             <BrowserRouter>
               {children}
+              <Toaster position="bottom-right" theme="dark" closeButton richColors />
             </BrowserRouter>
           </SmoothScrollProvider>
         </AuthProvider>
