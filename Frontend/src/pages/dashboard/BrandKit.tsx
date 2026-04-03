@@ -4,9 +4,9 @@ import { Plus, X, PaintBucket, Type, Info, Check, Sparkles } from "lucide-react"
 
 export const BrandKit = () => {
     const [kitName, setKitName] = useState("GenMark Core Identity");
-    const [colors, _setColors] = useState(['#3b82f6', '#f97316', '#a855f7', '#0a1a3a']);
-    const [fonts, _setFonts] = useState(['Space Grotesk', 'Inter']);
-    const [modifiers, _setModifiers] = useState(['professional', 'innovative', 'cinematic', 'minimalist']);
+    const [colors] = useState(['#3b82f6', '#f97316', '#a855f7', '#0a1a3a']);
+    const [fonts] = useState(['Space Grotesk', 'Inter']);
+    const [modifiers] = useState(['professional', 'innovative', 'cinematic', 'minimalist']);
     
     return (
         <div className="pb-12 h-full flex flex-col gap-8 max-w-6xl mx-auto w-full">

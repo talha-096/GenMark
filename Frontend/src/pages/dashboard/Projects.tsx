@@ -1,9 +1,18 @@
-import { Briefcase, Plus, Loader2 } from 'lucide-react';
+import { Briefcase, Plus } from 'lucide-react';
 import { Button } from '@/components/shared/Button';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
+
+interface ProjectResponse {
+    _id: string;
+    name: string;
+    asset_count?: number;
+    status?: string;
+    updated_at: string;
+    created_at: string;
+}
 
 interface ProjectItem {
     id: string;
@@ -18,8 +27,8 @@ export const Projects = () => {
     
     const { data: projects = [], isLoading } = useQuery({
         queryKey: ['user-projects', user?.id],
-        queryFn: async () => {
-            const res = await apiClient.get<any[]>('/api/projects');
+        queryFn: async (): Promise<ProjectItem[]> => {
+            const res = await apiClient.get<ProjectResponse[]>('/api/projects');
             return res.map(p => ({
                 id: p._id,
                 name: p.name,

@@ -1,8 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
-import { EffectComposer } from 'postprocessing';
-import { RenderPass } from 'postprocessing';
-import { BloomEffect, EffectPass } from 'postprocessing';
+import { EffectComposer, RenderPass, BloomEffect, EffectPass } from 'postprocessing';
 import { gsap } from 'gsap';
 import { particlesVert, particlesFrag, gridFrag, gridVert } from './shaders';
 
@@ -234,11 +232,13 @@ export const CosmosBackground: React.FC = () => {
     };
     window.addEventListener('resize', handleResize);
 
+    const currentMount = mountRef.current;
+    
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handleMouseMove);
       cancelAnimationFrame(req);
-      mountRef.current?.removeChild(renderer.domElement);
+      currentMount?.removeChild(renderer.domElement);
       renderer.dispose();
       pGeo.dispose();
       pMat.dispose();

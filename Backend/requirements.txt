@@ -5,6 +5,8 @@ flask-jwt-extended
 flask-bcrypt
 flask-limiter
 flask-apscheduler
+flask-sqlalchemy
+flask-pymongo
 
 # Documentation
 flasgger

@@ -30,6 +30,14 @@ interface DashboardStats {
   }
 }
 
+interface ActivityResponse {
+    _id: string;
+    type: string;
+    title: string;
+    created_at: string;
+    status: string;
+}
+
 
 export const Overview = () => {
   const navigate = useNavigate();
@@ -48,8 +56,8 @@ export const Overview = () => {
   // Real-time Recent Activity
   const { data: activityData = [], isLoading: isActivityLoading } = useQuery({
     queryKey: ["dashboard-activity", user?.id],
-    queryFn: async () => {
-       const res = await apiClient.get<any[]>("/api/dashboard/activity");
+    queryFn: async (): Promise<ActivityResponse[]> => {
+       const res = await apiClient.get<ActivityResponse[]>("/api/dashboard/activity");
        return res;
     },
     enabled: !!user,
@@ -175,7 +183,7 @@ export const Overview = () => {
                      <p className="text-xs text-muted-foreground">Neural engine is on standby.</p>
                   </div>
               ) : (
-                activityData.slice(0, 5).map((item: any, i: number) => (
+                activityData.slice(0, 5).map((item, i) => (
                   <div key={i} className="flex items-start gap-3 p-3 rounded-xl hover:bg-white/5 transition-all group border border-transparent hover:border-white/5">
                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                         {item.type === 'image' ? <ImageIcon size={14} className="text-primary" /> : <Type size={14} className="text-primary" />}

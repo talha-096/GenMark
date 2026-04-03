@@ -1,9 +1,19 @@
 # Universal .gitignore for GenMark Monorepo
+# Restrict repository to only Frontend and Backend source code
 
-# [Backend] Python
-__pycache__/
-*.py[cod]
-*$py.class
+# [Ignore Everything by Default]
+/*
+!/Frontend/
+!/Backend/
+!/.github/
+!/.gitignore
+!/README.md
+!/docker-compose.yml
+
+# [Backend] Python Specifics (within Backend folder)
+Backend/__pycache__/
+Backend/*.py[cod]
+Backend/*$py.class
 Backend/.env*
 Backend/.venv/
 Backend/instance/
@@ -23,7 +33,7 @@ Backend/Model/
 Backend/*.safetensors
 Backend/secrets/
 
-# [Frontend] Node
+# [Frontend] Node Specifics (within Frontend folder)
 Frontend/node_modules/
 Frontend/dist/
 Frontend/.env
@@ -31,22 +41,16 @@ Frontend/*.log
 Frontend/.eslintcache
 Frontend/.prettiercache
 Frontend/.turbo/
+Frontend/testsprite_tests/
 
-# [Docker]
-*.log
-docker-compose.override.yml
-.docker/
-
-# [IDE]
+# [IDE & OS]
 .vscode/
 .idea/
 *.swp
 *.swo
 .DS_Store
 
-# [Custom Models] - Prevent 4GB uploads
-Text to Text model/Model/
-Image to Text Model/
+# [Custom Models & Large Files]
 Model/
 *.safetensors
 *.bin
@@ -55,7 +59,7 @@ Model/
 
 # [Secrets & Keys]
 *.env*
-!.env.example
+!*.env.example
 *.pem
 *.key
 *.cert

@@ -6,6 +6,15 @@ import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/providers/AuthProvider';
 
+interface NeuralAssetResponse {
+    _id: string;
+    type?: string;
+    title?: string;
+    created_at: string;
+    size?: string;
+    status?: string;
+}
+
 interface HistoryItem {
     id: string;
     type: string;
@@ -21,8 +30,8 @@ export const History = () => {
 
     const { data: items = [], isLoading } = useQuery({
         queryKey: ['neural-assets', user?.id],
-        queryFn: async () => {
-            const res = await apiClient.get<any[]>('/api/content');
+        queryFn: async (): Promise<HistoryItem[]> => {
+            const res = await apiClient.get<NeuralAssetResponse[]>('/api/content');
             return res.map(item => ({
                 id: item._id,
                 type: item.type || 'text',

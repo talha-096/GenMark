@@ -14,8 +14,8 @@ type AuthContextType = {
   isAuthenticated: boolean;
   user: User | null;
   isLoading: boolean;
-  login: (credentials: any) => Promise<void>;
-  register: (data: any) => Promise<void>;
+  login: (credentials: Record<string, unknown>) => Promise<void>;
+  register: (data: Record<string, unknown>) => Promise<void>;
   logout: () => void;
 };
 
@@ -61,15 +61,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const login = async (credentials: any) => {
-    const data = await apiClient.post<{ token: string, user: any, message: string }>('/api/auth/login', credentials);
+  const login = async (credentials: Record<string, unknown>) => {
+    const data = await apiClient.post<{ token: string, user: unknown, message: string }>('/api/auth/login', credentials);
     localStorage.setItem('access_token', data.token);
     // After login, fetch the full user profile
     const userData = await apiClient.get<User>('/api/auth/profile');
     setUser(userData);
   };
 
-  const register = async (data: any) => {
+  const register = async (data: Record<string, unknown>) => {
     await apiClient.post('/api/auth/register', data);
   };
 

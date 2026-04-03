@@ -2,9 +2,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export class ApiError extends Error {
   public status: number;
-  public data: any;
+  public data: unknown;
   
-  constructor(message: string, status: number, data?: any) {
+  constructor(message: string, status: number, data?: unknown) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
@@ -42,7 +42,7 @@ export const apiClient = {
             plan: 'Enterprise'
           }, 
           message: 'Login successful' 
-        } as any;
+        } as unknown as T;
       }
       if (endpoint.includes('/api/auth/profile')) {
         return { 
@@ -51,12 +51,12 @@ export const apiClient = {
           email: 'talha@example.com', 
           created_at: new Date().toISOString(),
           plan: 'Enterprise' 
-        } as any;
+        } as unknown as T;
       }
       if (endpoint.includes('/api/auth/register')) {
         return { 
           message: 'Registration successful' 
-        } as any;
+        } as unknown as T;
       }
     }
 
@@ -91,7 +91,7 @@ export const apiClient = {
     return this.request<T>(endpoint, { ...options, method: 'GET' });
   },
 
-  post<T>(endpoint: string, body: any, options?: RequestInit) {
+  post<T>(endpoint: string, body: unknown, options?: RequestInit) {
     return this.request<T>(endpoint, {
       ...options,
       method: 'POST',
@@ -99,7 +99,7 @@ export const apiClient = {
     });
   },
 
-  put<T>(endpoint: string, body: any, options?: RequestInit) {
+  put<T>(endpoint: string, body: unknown, options?: RequestInit) {
     return this.request<T>(endpoint, {
       ...options,
       method: 'PUT',

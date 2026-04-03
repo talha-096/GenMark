@@ -1,4 +1,4 @@
-import { Activity as ActivityIcon, CheckCircle2, Clock, AlertCircle, Sparkles, MessageSquare } from 'lucide-react';
+import { Activity as ActivityIcon, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/providers/AuthProvider';

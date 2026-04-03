@@ -1,4 +1,3 @@
-import React, { useRef } from 'react';
 import * as THREE from 'three';
 
 export const ProceduralModels = {
@@ -76,7 +75,6 @@ export const ProceduralModels = {
     group.add(mesh);
     
     // Nodes
-    const pos = geo.attributes.position;
     const pMat = new THREE.PointsMaterial({ color: 0x00d4ff, size: 0.2 });
     const points = new THREE.Points(geo, pMat);
     group.add(points);

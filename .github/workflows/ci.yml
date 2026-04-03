@@ -5,23 +5,26 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
-  backend-lint-test:
+  backend-ci:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-
-    - name: Start MongoDB
-      uses: supercharge/mongodb-github-action@1.10.0
-      with:
-        mongodb-version: '6.0'
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
+        cache: 'pip'
+        cache-dependency-path: Backend/requirements.txt
         
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@1.10.0
+      with:
+        mongodb-version: '6.0'
+
     - name: Install dependencies
       run: |
         cd Backend
@@ -31,9 +34,7 @@ jobs:
     - name: Lint with flake8
       run: |
         cd Backend
-        # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
         
     - name: Run tests
@@ -45,7 +46,7 @@ jobs:
         JWT_SECRET_KEY: test-secret-key-123
         FLASK_ENV: testing
 
-  frontend-lint-test:
+  frontend-ci:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -54,6 +55,8 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: Frontend/package-lock.json
         
     - name: Install dependencies
       run: |
@@ -70,10 +73,14 @@ jobs:
         cd Frontend
         npm run test
 
-  docker-build-check:
+  docker-check:
     runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci]
     steps:
     - uses: actions/checkout@v4
     
     - name: Build Backend Image
       run: docker build ./Backend -t genmark-backend:test
+      
+    - name: Build Frontend Image
+      run: docker build ./Frontend -t genmark-frontend:test
