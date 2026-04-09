@@ -21,10 +21,15 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    # In prod, we would enforce stronger secrets here or via env vars
+
+class TestingConfig(Config):
+    TESTING = True
+    DEBUG = True
+    MONGO_URI = os.getenv('MONGO_URI_TEST', 'mongodb://localhost:27017/genmark_test')
 
 config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
+    'testing': TestingConfig,
     'default': DevelopmentConfig
 }

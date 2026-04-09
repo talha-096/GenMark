@@ -1,4 +1,4 @@
-name: GenMark CI
+name: GenMark CI/CD
 
 on:
   push:
@@ -40,7 +40,7 @@ jobs:
     - name: Run tests
       run: |
         cd Backend
-        pytest
+        python -m pytest
       env:
         MONGO_URI: mongodb://localhost:27017/genmark_test
         JWT_SECRET_KEY: test-secret-key-123
@@ -71,16 +71,39 @@ jobs:
     - name: Run tests
       run: |
         cd Frontend
-        npm run test
+        npm test
 
-  docker-check:
+  deploy:
     runs-on: ubuntu-latest
     needs: [backend-ci, frontend-ci]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    permissions:
+      contents: read
+      packages: write
     steps:
     - uses: actions/checkout@v4
     
-    - name: Build Backend Image
-      run: docker build ./Backend -t genmark-backend:test
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push Backend Image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./Backend
+        push: true
+        tags: |
+          ghcr.io/${{ github.repository }}/backend:latest
+          ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
       
-    - name: Build Frontend Image
-      run: docker build ./Frontend -t genmark-frontend:test
+    - name: Build and push Frontend Image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./Frontend
+        push: true
+        tags: |
+          ghcr.io/${{ github.repository }}/frontend:latest
+          ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}

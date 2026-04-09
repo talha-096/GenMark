@@ -25,3 +25,8 @@ openai
 anthropic
 google-generativeai
 gunicorn
+
+# Testing (CI/CD)
+pytest
+flake8
+pytest-flask
