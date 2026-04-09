@@ -24,6 +24,7 @@ export const ModelsCanvas = React.memo(
     useEffect(() => {
       if (!mountRef.current) return;
 
+      const mountNode = mountRef.current;
       const w = window.innerWidth;
       const h = window.innerHeight;
 
@@ -47,7 +48,7 @@ export const ModelsCanvas = React.memo(
       }
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(w, h);
-      mountRef.current.appendChild(renderer.domElement);
+      mountNode.appendChild(renderer.domElement);
 
       // Environment & Lights
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
@@ -221,7 +222,7 @@ export const ModelsCanvas = React.memo(
         window.removeEventListener("scroll", handleScroll);
         window.removeEventListener("resize", handleResize);
         cancelAnimationFrame(req);
-        mountRef.current?.removeChild(renderer.domElement);
+        if (mountNode) mountNode.removeChild(renderer.domElement);
         
         // Clean up
         scene.traverse((object) => {

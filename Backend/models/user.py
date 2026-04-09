@@ -6,11 +6,15 @@ from bson import ObjectId
 class User:
     @staticmethod
     def create_user(name, email, password):
-        users = db.users
+        users = db.db.users
         
         # Check if user exists
-        if users.find_one({"email": email}):
-            return None
+        try:
+            if users.find_one({"email": email}):
+                return None
+        except Exception as e:
+            print(f"Database error: {e}")
+            raise Exception("Database connection failed. Please ensure MongoDB is running.")
             
         password_hash = generate_password_hash(password).decode('utf-8')
         
@@ -31,11 +35,11 @@ class User:
 
     @staticmethod
     def get_by_email(email):
-        return db.users.find_one({"email": email})
+        return db.db.users.find_one({"email": email})
 
     @staticmethod
     def verify_user(email, password):
-        users = db.users
+        users = db.db.users
         user = users.find_one({"email": email})
         
         if user and check_password_hash(user['password'], password):
@@ -44,14 +48,14 @@ class User:
 
     @staticmethod
     def update_last_login(user_id):
-        return db.users.update_one(
+        return db.db.users.update_one(
             {"_id": ObjectId(user_id)},
             {"$set": {"last_login": datetime.utcnow()}}
         )
 
     @staticmethod
     def update_profile(user_id, profile_data):
-        return db.users.update_one(
+        return db.db.users.update_one(
             {"_id": ObjectId(user_id)},
             {"$set": {
                 "profile": profile_data,
@@ -62,5 +66,5 @@ class User:
 
     @staticmethod
     def get_by_id(user_id):
-        users = db.users
+        users = db.db.users
         return users.find_one({"_id": ObjectId(user_id)})

@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api";
+import { useAuth } from "@/providers/AuthProvider";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { 
   Sparkles, 
@@ -19,7 +22,14 @@ import {
 import { Button } from "@/components/shared/Button";
 import { toast } from "sonner";
 
+interface BrandKitData {
+    _id: string;
+    name: string;
+    colors: string[];
+}
+
 export const TextToImage = () => {
+  const { user } = useAuth();
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -28,49 +38,66 @@ export const TextToImage = () => {
   const [aspectRatio, setAspectRatio] = useState("16:9");
   const [history, setHistory] = useState<string[]>([]);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
+  const { data: brands = [] } = useQuery({
+    queryKey: ["brand-kits", user?.id],
+    queryFn: () => apiClient.get<BrandKitData[]>("/api/brand/"),
+    enabled: !!user,
+  });
 
-  const brands = [
-    { id: "genmark", name: "GenMark Pro", colors: ["#3B82F6", "#8B5CF6"], style: "Minimalist / High-Tech" },
-    { id: "neopulse", name: "NeoPulse", colors: ["#10B981", "#3B82F6"], style: "Eco-Futurism" },
-    { id: "vanguard", name: "Vanguard", colors: ["#EF4444", "#F59E0B"], style: "Bold / Industrial" }
-  ];
+  // No auto-selection to allow Neutral as default
 
-  const startGeneration = () => {
+  const startGeneration = async () => {
     if (!prompt) return;
     setIsGenerating(true);
     setProgress(0);
     setGeneratedImage(null);
     
-    // Applying brand constraints to logs
     setLogs([
         "[system] initializing neural core...", 
         "[auth] verifying enterprise token...",
-        selectedBrand ? `[brand] locking font and palette: ${brands.find(b => b.id === selectedBrand)?.style}` : "[brand] using agnostic aesthetic"
+        selectedBrand ? `[brand] locking font and palette: ${brands.find(b => b._id === selectedBrand)?.name}` : "[brand] using agnostic aesthetic"
     ]);
 
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsGenerating(false);
-          const newImg = "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?auto=format&fit=crop&q=80&w=1000";
-          setGeneratedImage(newImg);
-          setHistory(prevH => [newImg, ...prevH.slice(0, 3)]);
-          setLogs(prevLogs => [...prevLogs, "[render] synthesis complete.", "[system] asset ready for uplink."]);
-          toast.success("Generation Complete", {
-            description: "Your neural asset has been synthesized successfully.",
-          });
-          return 100;
+    try {
+        const interval = setInterval(() => {
+            setProgress(prev => (prev >= 90 ? 90 : prev + 10));
+        }, 800);
+
+        const response = await apiClient.post<{ 
+            success: boolean, 
+            content: string, 
+            id: string,
+            title: string 
+        }>('/api/generate/image', {
+            prompt,
+            brand_kit_id: selectedBrand,
+            aspect_ratio: aspectRatio
+        });
+
+        clearInterval(interval);
+        setProgress(100);
+
+        if (response.success) {
+            setGeneratedImage(response.content);
+            setHistory(prevH => [response.content, ...prevH.slice(0, 3)]);
+            setLogs(prevLogs => [
+                ...prevLogs, 
+                "[neural] latent space mapped.", 
+                "[render] synthesis complete.", 
+                "[system] asset ready for uplink."
+            ]);
+            toast.success("Generation Complete", {
+                description: "Your neural asset has been synthesized successfully.",
+            });
         }
-        
-        const next = prev + 5;
-        if (next === 20) setLogs(prevLogs => [...prevLogs, "[neural] mapping latent space..."]);
-        if (next === 50) setLogs(prevLogs => [...prevLogs, "[vision] synthesizing brand-safe layers..."]);
-        if (next === 80) setLogs(prevLogs => [...prevLogs, "[engine] applying high-fidelity shaders..."]);
-        
-        return next;
-      });
-    }, 200);
+    } catch (error) {
+        setLogs(prevLogs => [...prevLogs, "[error] neural engine failure: connection reset."]);
+        toast.error("Generation Failed", {
+            description: "The neural engine encountered an unexpected error."
+        });
+    } finally {
+        setIsGenerating(false);
+    }
   };
 
   return (
@@ -93,25 +120,43 @@ export const TextToImage = () => {
                     <Palette size={12} className="text-muted-foreground" />
                   </div>
                   <div className="grid grid-cols-1 gap-2">
+                      <button
+                        onClick={() => setSelectedBrand(null)}
+                        className={`p-3 rounded-xl border flex items-center gap-3 transition-all text-left ${
+                            selectedBrand === null 
+                            ? "bg-primary/10 border-primary/50 ring-1 ring-primary/20" 
+                            : "bg-white/5 border-white/10 hover:bg-white/10"
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                            <Palette size={16} className="text-muted-foreground" />
+                        </div>
+                        <div>
+                            <div className="text-xs font-bold">Neutral Context</div>
+                            <div className="text-[9px] text-muted-foreground uppercase tracking-widest">Agnostic / Global Style</div>
+                        </div>
+                        {selectedBrand === null && <CheckCircle2 size={14} className="ml-auto text-primary" />}
+                      </button>
+
                       {brands.map(brand => (
                           <button
-                            key={brand.id}
-                            onClick={() => setSelectedBrand(selectedBrand === brand.id ? null : brand.id)}
+                            key={brand._id}
+                            onClick={() => setSelectedBrand(brand._id)}
                             className={`p-3 rounded-xl border flex items-center gap-3 transition-all text-left ${
-                                selectedBrand === brand.id 
+                                selectedBrand === brand._id 
                                 ? "bg-primary/10 border-primary/50 ring-1 ring-primary/20" 
                                 : "bg-white/5 border-white/10 hover:bg-white/10"
                             }`}
                           >
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${brand.colors[0]}, ${brand.colors[1]})` }}>
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center relative overflow-hidden" style={{ background: brand.colors && brand.colors.length > 0 ? (brand.colors.length > 1 ? `linear-gradient(135deg, ${brand.colors[0]}, ${brand.colors[1]})` : brand.colors[0]) : "#3b82f6" }}>
                                 <ShieldCheck size={16} className="text-white relative z-10" />
                                 <div className="absolute inset-0 bg-black/20" />
                             </div>
                             <div>
                                 <div className="text-xs font-bold">{brand.name}</div>
-                                <div className="text-[9px] text-muted-foreground">{brand.style}</div>
+                                <div className="text-[9px] text-muted-foreground uppercase tracking-wider">{brand.colors?.length || 0} Core Colors</div>
                             </div>
-                            {selectedBrand === brand.id && <CheckCircle2 size={14} className="ml-auto text-primary" />}
+                            {selectedBrand === brand._id && <CheckCircle2 size={14} className="ml-auto text-primary" />}
                           </button>
                       ))}
                   </div>

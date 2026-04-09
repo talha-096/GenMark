@@ -15,6 +15,7 @@ Backend/__pycache__/
 Backend/*.py[cod]
 Backend/*$py.class
 Backend/.env*
+Backend/venv/
 Backend/.venv/
 Backend/instance/
 Backend/htmlcov/
@@ -50,6 +51,10 @@ Frontend/testsprite_tests/
 *.swo
 .DS_Store
 
+# [Data & Databases]
+mongodb_data/
+mongodb_data_v2/
+
 # [Custom Models & Large Files]
 Model/
 *.safetensors
@@ -59,6 +64,7 @@ Model/
 
 # [Secrets & Keys]
 *.env*
+**/__pycache__/
 !*.env.example
 *.pem
 *.key
@@ -71,3 +77,6 @@ credentials.json
 auth.json
 *.pcap
 *.cap
+
+*storybook.log
+storybook-static

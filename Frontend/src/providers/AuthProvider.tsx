@@ -62,15 +62,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (credentials: Record<string, unknown>) => {
-    const data = await apiClient.post<{ token: string, user: unknown, message: string }>('/api/auth/login', credentials);
-    localStorage.setItem('access_token', data.token);
-    // After login, fetch the full user profile
-    const userData = await apiClient.get<User>('/api/auth/profile');
-    setUser(userData);
+    try {
+      const data = await apiClient.post<{ token: string, user: User, message: string }>('/api/auth/login', credentials);
+      localStorage.setItem('access_token', data.token);
+      // After login, fetch the full user profile to ensure consistency
+      const userData = await apiClient.get<User>('/api/auth/profile');
+      setUser(userData);
+    } catch (error) {
+      console.error("Login failed:", error);
+      throw error;
+    }
   };
 
   const register = async (data: Record<string, unknown>) => {
-    await apiClient.post('/api/auth/register', data);
+    try {
+      const resp = await apiClient.post<{ token: string, user: User, message: string }>('/api/auth/register', data);
+      // Auto-login if token is returned
+      if (resp.token) {
+        localStorage.setItem('access_token', resp.token);
+        const userData = await apiClient.get<User>('/api/auth/profile');
+        setUser(userData);
+      }
+    } catch (error) {
+      console.error("Registration failed:", error);
+      throw error;
+    }
   };
 
   const logout = () => {
@@ -85,6 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth must be used within an AuthProvider");

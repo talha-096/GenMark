@@ -56,19 +56,14 @@ def get_dashboard_stats():
         
     return jsonify({
         "total_generations": total_generations,
-        "total_brand_kits": total_kits,
-        "words_written": total_words,
-        "efficiency_score": efficiency,
-        "performance_data": perf_data,
-        "device_desktop": desktop,
-        "device_mobile": mobile,
-        "device_tablet": tablet,
-        "conversion_multiplier": 1.0,
+        "active_projects": 1 if total_generations > 0 else 0, # Simple logic for now
+        "brand_alignment": 95, # Mock baseline for now
+        "ai_efficiency": efficiency,
         "trends": {
             "generations": "+0",
-            "words": "+0%",
-            "efficiency": "+0%",
-            "kits": "+0"
+            "projects": "+0",
+            "alignment": "+0%",
+            "efficiency": "+0%"
         }
     }), 200
 
@@ -84,22 +79,22 @@ def get_recent_activity():
     activity = []
     for p in posts:
         created_at = p.get("created_at")
-        time_str = created_at.strftime("%H:%M, %b %d") if created_at else "Just now"
         
         # Categorize content for the activity feed
         c_type = p.get("type", "text")
+        # Map back to simple types for frontend icons
         if "text" in c_type.lower():
-            label = "Text Generation"
+            label = "text"
         elif "image" in c_type.lower():
-            label = "Image Generation"
+            label = "image"
         else:
-            label = f"{c_type.capitalize()} Content"
+            label = "text"
             
         activity.append({
-            "id": str(p["_id"]),
+            "_id": str(p["_id"]),
             "title": p.get("title", "Untitled"),
             "type": label,
-            "time": time_str,
+            "created_at": created_at.isoformat() if created_at else None,
             "status": "success"
         })
         

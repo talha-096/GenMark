@@ -156,12 +156,17 @@ TASK: Create {content_type} content that:
         }
     
     def _mock_image_generation(self, prompt, brand_kit):
+        # Use a high-quality relevant-ish image for the demo
+        topic = prompt.split()[:3]
+        query = "+".join(topic) if topic else "technology"
+        image_url = f"https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1000&q={query}"
+        
         return {
-            "image_url": "https://via.placeholder.com/1024x1024/3B82F6/FFFFFF?text=DEMO+IMAGE",
+            "image_url": image_url,
             "model": "demo",
             "type": "image",
             "brand_applied": brand_kit is not None,
-            "message": "Add OPENAI_API_KEY to generate real images"
+            "message": "DEMO MODE: Using Unsplash fallback. Add OPENAI_API_KEY for real DALL-E 3 output."
         }
     
     def _mock_image_analysis(self, image_url, prompt, brand_kit):

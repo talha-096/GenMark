@@ -77,7 +77,9 @@ def generate_text_to_image():
     )
     
     return jsonify({
+        "success": True,
         "id": str(content_id),
+        "content": result.get("image_url"),
         "image_url": result.get("image_url"),
         "model": result.get("model"),
         "brand_applied": result.get("brand_applied", False),
