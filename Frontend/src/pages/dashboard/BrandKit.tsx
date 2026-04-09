@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { GlassCard } from "@/components/shared/GlassCard";
-import { Plus, X, PaintBucket, Type, Info, Check, Sparkles, Loader2 } from "lucide-react";
+import { Plus, X, PaintBucket, Type, Check, Loader2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import { useAuth } from "@/providers/AuthProvider";
@@ -137,7 +137,7 @@ export const BrandKit = () => {
                     </div>
                 </GlassCard>
 
-                <GlassCard variant="purple" className="p-8 flex flex-col gap-6">
+                <GlassCard variant="featured" className="p-8 flex flex-col gap-6">
                     <div className="flex items-center gap-3 border-b border-white/10 pb-4">
                         <Type className="text-purple-400" size={24} />
                         <h3 className="text-xl font-display font-medium text-purple-400">Typography Constraints</h3>

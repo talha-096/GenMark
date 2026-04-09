@@ -5,6 +5,7 @@ type User = {
   id: string;
   name: string;
   email: string;
+  role?: string;
   created_at: string;
   subscription_plan?: string;
   plan?: string;

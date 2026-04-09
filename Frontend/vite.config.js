@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /// <reference types="vitest" />
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
@@ -13,8 +14,15 @@ export default defineConfig({
         }
     },
     server: {
+        host: '0.0.0.0',
         port: 5173,
-        proxy: {},
+        proxy: {
+            '/api': {
+                target: process.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000',
+                changeOrigin: true,
+                secure: false,
+            }
+        },
         fs: {
             allow: ['..']
         }

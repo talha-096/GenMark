@@ -72,6 +72,11 @@ jobs:
       run: |
         cd Frontend
         npm test
+        
+    - name: Build
+      run: |
+        cd Frontend
+        npm run build
 
   deploy:
     runs-on: ubuntu-latest

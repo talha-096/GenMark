@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { 
   Sparkles, 
