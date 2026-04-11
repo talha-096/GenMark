@@ -2,6 +2,9 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.brand_kit import BrandKit
 from bson import ObjectId
+from services.s3_service import S3Service
+from datetime import datetime
+import os
 
 brand_bp = Blueprint("brand", __name__)
 
@@ -25,6 +28,48 @@ def create_brand_kit():
     )
     
     return jsonify({"message": "Brand Kit created", "id": str(kit_id)}), 201
+
+@brand_bp.route("/upload-logo", methods=["POST"])
+@jwt_required()
+def upload_logo():
+    """Upload a logo to S3"""
+    if "logo" not in request.files:
+        return jsonify({"message": "No logo file provided"}), 400
+        
+    file = request.files["logo"]
+    if file.filename == "":
+        return jsonify({"message": "No file selected"}), 400
+        
+    # Validate extension
+    allowed_extensions = {".png", ".jpg", ".jpeg", ".svg"}
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in allowed_extensions:
+        return jsonify({"message": f"Unsupported file type. Allowed: {', '.join(allowed_extensions)}"}), 400
+
+    # Upload to S3
+    s3 = S3Service()
+    timestamp = int(datetime.utcnow().timestamp())
+    # Clean filename to avoid issues
+    clean_name = "".join(c for c in file.filename if c.isalnum() or c in "._-").strip()
+    s3_path = f"logos/logo_{timestamp}_{clean_name}"
+    
+    success = s3.upload_file(file.read(), s3_path, content_type=file.content_type)
+    
+    if not success:
+        return jsonify({"message": "Failed to upload to S3"}), 500
+        
+    logo_url = s3.get_presigned_url(s3_path)
+    
+    # Optional: Update brand kit if ID provided
+    kit_id = request.form.get("kit_id")
+    if kit_id:
+        BrandKit.update_brand_kit(kit_id, {"logo_url": logo_url})
+        
+    return jsonify({
+        "message": "Logo uploaded successfully",
+        "logo_url": logo_url,
+        "s3_path": s3_path # Returning S3 path for future reference
+    }), 200
 
 @brand_bp.route("/", methods=["GET"])
 @jwt_required()

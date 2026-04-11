@@ -10,6 +10,12 @@ class Config:
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', os.getenv('SECRET_KEY', 'default-secret-key'))
     SCHEDULER_API_ENABLED = True
     
+    # AWS S3 Configuration
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    AWS_S3_BUCKET = os.getenv('S3_BUCKET_NAME')
+    AWS_S3_REGION = os.getenv('AWS_REGION', 'us-east-1')
+    
     # Swagger Config
     SWAGGER = {
         'title': 'GenMark API',
