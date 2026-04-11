@@ -2,16 +2,14 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
 // Mock ResizeObserver
-class ResizeObserver {
+window.ResizeObserver = class {
   observe() {}
   unobserve() {}
   disconnect() {}
-}
-
-window.ResizeObserver = ResizeObserver;
+} as any;
 
 // Mock window.scrollTo
-window.scrollTo = vi.fn();
+window.scrollTo = vi.fn() as any;
 
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -29,13 +27,11 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock IntersectionObserver
-class IntersectionObserver {
+window.IntersectionObserver = class {
   observe() {}
   unobserve() {}
   disconnect() {}
-}
-
-window.IntersectionObserver = IntersectionObserver;
+} as any;
 
 // Mock Canvas getContext for Three.js
 HTMLCanvasElement.prototype.getContext = vi.fn().mockImplementation((contextId) => {
@@ -62,9 +58,7 @@ HTMLCanvasElement.prototype.getContext = vi.fn().mockImplementation((contextId) 
       fill: vi.fn(),
       measureText: vi.fn(() => ({ width: 0 })),
       transform: vi.fn(),
-      rect: vi.fn(),
       stroke: vi.fn(),
-      fill: vi.fn(),
       fillText: vi.fn(),
       strokeText: vi.fn(),
     };
@@ -106,4 +100,4 @@ HTMLCanvasElement.prototype.getContext = vi.fn().mockImplementation((contextId) 
     };
   }
   return null;
-});
+}) as any;
