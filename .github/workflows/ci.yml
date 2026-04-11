@@ -61,7 +61,7 @@ jobs:
     - name: Install dependencies
       run: |
         cd Frontend
-        npm ci
+        npm ci --legacy-peer-deps
         
     - name: Lint
       run: |
