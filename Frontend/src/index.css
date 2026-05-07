@@ -7,56 +7,82 @@
 @layer base {
   :root {
     /* === BACKGROUNDS === */
-    --background:       220 22% 4%;      /* #070b14 — void black with blue tint */
-    --surface:          220 20% 7%;      /* #0d1220 — card base */
-    --surface-raised:   220 18% 10%;     /* elevated panels */
+    --background: 220 22% 4%;        /* #070b14 — void black with blue tint */
+    --surface: 220 20% 7%;           /* #0d1220 — card base */
+    --surface-raised: 220 18% 10%;   /* elevated panels */
 
     /* === PRIMARY: Trust Blue === */
-    --primary:          217 91% 60%;     /* #3b82f6 — electric blue */
-    --primary-dark:     217 91% 40%;     /* deeper blue for gradients */
+    --primary: 217 91% 60%;          /* #3b82f6 — electric blue */
+    --primary-dark: 217 91% 40%;     /* deeper blue for gradients */
     --primary-foreground: 0 0% 100%;
 
     /* === SECONDARY: Growth Orange === */
-    --secondary:        24 95% 60%;      /* #f97316 — warm growth orange */
+    --secondary: 24 95% 60%;         /* #f97316 — warm growth orange */
     --secondary-foreground: 0 0% 100%;
 
     /* === ACCENT: Neural Violet === */
-    --accent:           270 85% 65%;     /* #a855f7 — neural violet */
+    --accent: 270 85% 65%;           /* #a855f7 — neural violet */
     --accent-foreground: 0 0% 100%;
 
     /* === SEMANTIC === */
-    --code:             142 71% 45%;     /* #22c55e — success green */
-    --warning:          38 92% 50%;      /* #f59e0b — amber */
-    --destructive:      0 84% 60%;       /* #ef4444 — red */
+    --code: 142 71% 45%;             /* #22c55e — success green */
+    --warning: 38 92% 50%;           /* #f59e0b — amber */
+    --destructive: 0 84% 60%;        /* #ef4444 — red */
 
     /* === TEXT === */
-    --foreground:       210 40% 96%;     /* near-white */
-    --muted-foreground: 215 20% 55%;     /* dimmed text */
+    --foreground: 210 40% 96%;       /* near-white */
+    --muted-foreground: 215 20% 55%; /* dimmed text */
 
     /* === BORDERS === */
-    --border:           217 30% 14%;
-    --border-glow:      217 91% 60% / 0.2;
+    --border: 217 30% 14%;
+    --border-glow: 217 91% 60% / 0.2;
 
     --radius: 0.75rem;
   }
 }
 
 @layer base {
-  *, *::before, *::after { box-sizing: border-box; }
-  html { scroll-behavior: auto; } /* Lenis handles smooth scroll */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-family: 'Manrope', system-ui, sans-serif;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.3);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.6);
   }
 }
 
 @layer utilities {
-  /* Gradient text utility */
+
+  /* Gradient text — primary */
   .gradient-text {
-    background: linear-gradient(135deg,
+    background: linear-gradient(
+      135deg,
       hsl(var(--primary)) 0%,
       #ffffff 45%,
       hsl(var(--secondary)) 100%
@@ -68,9 +94,10 @@
     animation: shimmer 4s linear infinite;
   }
 
-  /* Neural gradient variant */
+  /* Gradient text — neural violet variant */
   .gradient-text-neural {
-    background: linear-gradient(135deg,
+    background: linear-gradient(
+      135deg,
       hsl(var(--primary)) 0%,
       hsl(var(--accent)) 50%,
       hsl(var(--secondary)) 100%
@@ -81,4 +108,96 @@
     -webkit-text-fill-color: transparent;
     animation: shimmer 5s linear infinite;
   }
+
+  /* Glow shadows */
+  .shadow-glow-sm {
+    box-shadow: 0 0 12px hsl(var(--primary) / 0.25);
+  }
+  .shadow-glow {
+    box-shadow: 0 0 24px hsl(var(--primary) / 0.35);
+  }
+  .shadow-glow-md {
+    box-shadow: 0 0 40px hsl(var(--primary) / 0.45);
+  }
+  .shadow-glow-xl {
+    box-shadow: 0 0 60px hsl(var(--primary) / 0.5);
+  }
+  .shadow-glow-orange {
+    box-shadow: 0 0 24px hsl(var(--secondary) / 0.35);
+  }
+  .shadow-glass {
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  /* Animate ping glow */
+  .animate-pulse-glow {
+    animation: pulse-glow 2.5s ease-in-out infinite;
+  }
+
+  /* Noise overlay texture */
+  .noise-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    border-radius: inherit;
+  }
 }
+
+/* ── Keyframes ── */
+@keyframes shimmer {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.7; text-shadow: 0 0 8px hsl(var(--primary) / 0.5); }
+  50%       { opacity: 1;   text-shadow: 0 0 20px hsl(var(--primary) / 0.8); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-12px); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Animation utility classes ── */
+.animate-fade-in-up {
+  animation: fade-in-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-fade-in {
+  animation: fade-in 0.5s ease both;
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+.animate-scale-in {
+  animation: scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Stagger delay utilities ── */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
+.delay-700 { animation-delay: 700ms; }
+.delay-800 { animation-delay: 800ms; }

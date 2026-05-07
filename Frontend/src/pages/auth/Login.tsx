@@ -30,7 +30,7 @@ export const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center pt-20 pb-12 px-6">
+        <div className="min-h-screen flex items-center justify-center pt-20 pb-12 px-4 sm:px-6">
             <GlassCard className="w-full max-w-md p-8 relative overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-1 bg-[linear-gradient(90deg,hsl(var(--primary)),hsl(var(--secondary)))]" />
                 

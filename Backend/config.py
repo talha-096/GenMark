@@ -16,6 +16,14 @@ class Config:
     AWS_S3_BUCKET = os.getenv('S3_BUCKET_NAME')
     AWS_S3_REGION = os.getenv('AWS_REGION', 'us-east-1')
     
+    # Local LLM Configuration
+    LOCAL_LLM_MODEL_PATH = os.getenv('LOCAL_LLM_MODEL_PATH', r'D:\GenMark\Model')
+    LOCAL_LLM_THREADS = int(os.getenv('LOCAL_LLM_THREADS', 4))
+    LOCAL_LLM_CTX = int(os.getenv('LOCAL_LLM_CTX', 2048))
+    USE_TRANSFORMERS = True
+    # User requested full memory, so we disable quantization
+    QUANTIZE_MODEL = False
+    
     # Swagger Config
     SWAGGER = {
         'title': 'GenMark API',

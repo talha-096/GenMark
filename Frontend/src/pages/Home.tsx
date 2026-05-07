@@ -5,7 +5,7 @@ import { useGSAP } from "@gsap/react";
 import { GradientText } from "@/components/shared/GradientText";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { TextMarquee } from "@/components/shared/TextMarquee";
-import { ModelsCanvas, ModelsCanvasHandle } from "@/components/models/ModelsCanvas";
+
 import { AgentCanvasFrame } from "@/components/home/AgentCanvasFrame";
 import { CreativeTransformation } from "@/components/home/CreativeTransformation";
 import { Link } from "react-router-dom";
@@ -14,10 +14,10 @@ import {
   Zap,
   ArrowUpRight
 } from "lucide-react";
-import { Footer } from "@/components/layout/Footer";
+
 
 export const Home = () => {
-  const modelsRef = useRef<ModelsCanvasHandle>(null);
+
   const scene1Ref = useRef<HTMLElement>(null);
   const scene2Ref = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,25 +47,24 @@ export const Home = () => {
   }, { scope: containerRef });
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-background text-foreground selection:bg-primary/30 selection:text-white overflow-x-hidden">
-      {/* 3D Master background engine */}
-      <ModelsCanvas ref={modelsRef} />
+    <div ref={containerRef} className="min-h-screen text-foreground selection:bg-primary/30 selection:text-white">
+
 
       {/* SCENE 1: The Vision (Landing) */}
-      <section ref={scene1Ref} className="relative min-h-screen w-full flex items-center justify-center pt-20 overflow-hidden px-6">
+      <section ref={scene1Ref} className="relative min-h-screen w-full flex items-center justify-center pt-24 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto w-full text-center mt-[5vh] z-10 relative">
           <div className="hero-content">
             <div className="font-mono text-xs tracking-[0.4em] text-primary/80 mb-8 uppercase animate-pulse-glow">Intelligence Re-imagined</div>
-            <h1 className="text-7xl md:text-9xl lg:text-[12rem] font-black font-display tracking-tighter leading-none mb-4 drop-shadow-2xl">
+            <h1 className="text-6xl sm:text-8xl md:text-9xl lg:text-[10rem] font-black font-display tracking-tighter leading-none mb-4 drop-shadow-2xl">
               <GradientText size="hero" className="block hover:scale-105 transition-transform duration-700 cursor-default">GenMark</GradientText>
             </h1>
-            <h2 className="text-4xl md:text-6xl font-display font-light tracking-tight text-foreground/80 mb-12">
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-display font-light tracking-tight text-foreground/80 mb-10">
               Creative <span className="text-primary font-medium italic">Efficiency.</span>
             </h2>
-            <p className="text-xl md:text-3xl text-foreground font-medium max-w-4xl mx-auto mb-8 leading-tight">
+            <p className="text-lg md:text-2xl text-foreground font-medium max-w-4xl mx-auto mb-8 leading-tight">
               Scale your content production without compromising your brand identity.
             </p>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-12">
+            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-10">
               GenMark integrates state-of-the-art AI with modern marketing workflows to automate the generation, analysis, and management of high-impact visual assets.
             </p>
             
@@ -86,7 +85,7 @@ export const Home = () => {
       <CreativeTransformation />
 
       {/* SCENE 2: The SRS Vision / Philosophy */}
-      <section ref={scene2Ref} className="relative min-h-screen py-32 px-6 flex items-center justify-center">
+      <section ref={scene2Ref} className="relative py-20 md:py-32 px-4 sm:px-6 flex items-center justify-center">
         <div className="max-w-5xl mx-auto w-full z-10 relative">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
@@ -126,11 +125,11 @@ export const Home = () => {
       <AgentCanvasFrame />
 
       {/* SCENE 3: The Unified Ecosystem Bridge */}
-      <section className="relative min-h-screen py-32 px-6 flex items-center justify-center overflow-hidden">
+      <section className="relative py-20 md:py-32 px-4 sm:px-6 flex items-center justify-center">
         <div className="max-w-7xl mx-auto w-full z-10 relative">
           <div className="text-center mb-16">
             <div className="font-mono text-sm tracking-widest text-primary mb-4">THE ECOSYSTEM</div>
-            <h2 className="text-5xl md:text-7xl font-display font-bold mb-8">One Neural Engine. <br/><GradientText>Infinite Possibilities.</GradientText></h2>
+            <h2 className="text-3xl sm:text-5xl md:text-6xl font-display font-bold mb-8">One Neural Engine. <br/><GradientText>Infinite Possibilities.</GradientText></h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               GenMark's architecture is built of specialized layers, each dedicated to a critical aspect of your marketing workflow.
             </p>
@@ -179,9 +178,9 @@ export const Home = () => {
       </section>
 
       {/* FINAL CTA */}
-      <section className="relative py-48 px-6 text-center border-t border-white/5">
+      <section className="relative py-24 md:py-40 px-4 sm:px-6 text-center border-t border-white/5">
         <div className="max-w-4xl mx-auto z-10 relative">
-          <h2 className="text-5xl md:text-8xl font-display font-black mb-12 leading-tight">
+          <h2 className="text-4xl sm:text-6xl md:text-8xl font-display font-black mb-10 leading-tight">
             Ready to <GradientText>Scale?</GradientText>
           </h2>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
@@ -196,7 +195,7 @@ export const Home = () => {
         </div>
       </section>
 
-      <Footer />
+
     </div>
   );
 };

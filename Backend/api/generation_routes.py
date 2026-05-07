@@ -126,6 +126,49 @@ def generate_image_to_text():
     }), 200
 
 
+@generation_bp.route("/generate-ad", methods=["POST"])
+@jwt_required()
+def generate_ad():
+    """Specific endpoint for ad generation using local or remote LLM"""
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    
+    product = data.get("product")
+    if not product:
+        return jsonify({"message": "Product name is required"}), 400
+    
+    brand_kit = _get_brand_kit(data.get("brand_kit_id"))
+    
+    # Custom prompt for the ad copy as requested in the snippet
+    prompt = f"Write a catchy 2-line Facebook ad for {product}."
+    
+    result = llm_service.generate_text_to_text(
+        prompt=prompt,
+        brand_kit=brand_kit,
+        content_type="ad"
+    )
+    
+    if "error" in result:
+        return jsonify({"message": "Generation failed", "error": result["error"]}), 500
+    
+    # Save to history via MarketingContent
+    content_id = MarketingContent.create_content(
+        user_id=user_id,
+        title=f"Ad Generation: {product}",
+        content=result.get("content", ""),
+        content_type="ad",
+        brand_kit_id=data.get("brand_kit_id"),
+        prompt=prompt
+    )
+    
+    return jsonify({
+        "id": str(content_id),
+        "ad_copy": result.get("content"),
+        "model": result.get("model"),
+        "brand_applied": result.get("brand_applied", False)
+    }), 200
+
+
 @generation_bp.route("/history", methods=["GET"])
 @jwt_required()
 def get_generation_history():

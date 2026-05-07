@@ -36,7 +36,7 @@ export const Signup = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center pt-20 pb-12 px-6">
+        <div className="min-h-screen flex items-center justify-center pt-20 pb-12 px-4 sm:px-6">
             <GlassCard variant="orange" className="w-full max-w-md p-8 relative overflow-hidden">
                 <div className="text-center mb-10">
                    <h1 className="text-3xl font-display font-bold mb-2">Join <GradientText>GenMark</GradientText></h1>

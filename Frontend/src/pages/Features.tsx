@@ -99,10 +99,10 @@ export const Features = () => {
   }, []);
 
   return (
-    <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto min-h-screen">
+    <div className="pt-24 pb-16 px-4 sm:px-6 max-w-7xl mx-auto">
       <div className="text-center mb-24">
         <div className="font-mono text-sm tracking-widest text-primary mb-3">CONSOLIDATE YOUR STACK</div>
-        <h1 className="text-5xl md:text-7xl font-display font-bold mb-6">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-bold mb-6">
           One Neural Engine.<br />
           <GradientText>Infinite Capabilities.</GradientText>
         </h1>
@@ -139,10 +139,10 @@ export const Features = () => {
       </div>
 
       {/* ROADMAP SECTION INJECTED INTO FEATURES */}
-      <div className="mt-32 max-w-7xl mx-auto px-6">
+      <div className="mt-24 max-w-7xl mx-auto">
          <div className="text-center mb-16 roadmap-intro">
             <div className="font-mono text-sm tracking-widest text-primary mb-3 uppercase">Evolutionary Logic</div>
-            <h2 className="text-4xl md:text-5xl font-display font-bold mb-6 text-white">The <GradientText>Neural Roadmap</GradientText></h2>
+            <h2 className="text-3xl md:text-4xl font-display font-bold mb-6 text-white">The <GradientText>Neural Roadmap</GradientText></h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">GenMark isn't just a static tool; it's a living ecosystem designed to evolve with the shifting landscape of digital expression.</p>
          </div>
          
@@ -166,13 +166,13 @@ export const Features = () => {
       </div>
 
       <div className="mt-16 max-w-4xl mx-auto">
-        <GlassCard variant="featured" className="p-12 text-center flex flex-col items-center">
+        <GlassCard variant="featured" className="p-8 sm:p-12 text-center flex flex-col items-center">
           <ShieldCheck size={48} className="text-primary mb-6" />
           <h2 className="text-3xl font-display font-bold mb-4">Enterprise-grade Security</h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-lg">
             Your brand data is your competitive advantage. GenMark's models are isolated and your proprietary data is never used to train global public models.
           </p>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-3 justify-center">
              <span className="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm font-medium">SOC 2 Type II</span>
              <span className="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm font-medium">GDPR Compliant</span>
              <span className="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm font-medium">End-to-End Encryption</span>

@@ -64,10 +64,10 @@ const Engine = () => {
   }, []);
 
   return (
-    <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto min-h-screen relative z-10">
+    <div className="pt-24 pb-16 px-4 sm:px-6 max-w-7xl mx-auto relative z-10">
       <div className="text-center mb-24">
         <div className="font-mono text-sm tracking-widest text-primary mb-3">TECHNOLOGY STACK</div>
-        <h1 className="text-5xl md:text-7xl font-display font-bold mb-6">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-bold mb-6">
           The <GradientText>Neural Core</GradientText>
         </h1>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">

@@ -5,7 +5,7 @@ import { useGSAP } from "@gsap/react";
 import { GradientText } from "@/components/shared/GradientText";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { TextMarquee } from "@/components/shared/TextMarquee";
-import { ModelsCanvas, ModelsCanvasHandle } from "@/components/models/ModelsCanvas";
+
 import { AgentCanvasFrame } from "@/components/home/AgentCanvasFrame";
 import { CreativeTransformation } from "@/components/home/CreativeTransformation";
 import { Link } from "react-router-dom";
@@ -14,10 +14,10 @@ import {
   Zap,
   ArrowUpRight
 } from "lucide-react";
-import { Footer } from "@/components/layout/Footer";
+
 
 export const Index = () => {
-  const modelsRef = useRef<ModelsCanvasHandle>(null);
+
   const scene1Ref = useRef<HTMLElement>(null);
   const scene2Ref = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,9 +47,8 @@ export const Index = () => {
   }, { scope: containerRef });
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-background text-foreground selection:bg-primary/30 selection:text-white overflow-x-hidden">
-      {/* 3D Master background engine */}
-      <ModelsCanvas ref={modelsRef} />
+    <div ref={containerRef} className="min-h-screen text-foreground selection:bg-primary/30 selection:text-white overflow-x-hidden">
+
 
       {/* SCENE 1: The Vision (Landing) */}
       <section ref={scene1Ref} className="relative min-h-screen w-full flex items-center justify-center pt-20 overflow-hidden px-6">
@@ -196,7 +195,7 @@ export const Index = () => {
         </div>
       </section>
 
-      <Footer />
+
     </div>
   );
 };

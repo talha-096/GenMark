@@ -40,11 +40,22 @@ class User:
     @staticmethod
     def verify_user(email, password):
         users = db.db.users
+        print(f"DEBUG: Attempting login for email: {email}")
         user = users.find_one({"email": email})
         
-        if user and check_password_hash(user['password'], password):
+        if not user:
+            print(f"DEBUG: No user found with email: {email}")
+            return None
+            
+        print(f"DEBUG: User found, verifying password...")
+        is_valid = check_password_hash(user['password'], password)
+        
+        if is_valid:
+            print(f"DEBUG: Password verification successful for {email}")
             return user
-        return None
+        else:
+            print(f"DEBUG: Password verification failed for {email}")
+            return None
 
     @staticmethod
     def update_last_login(user_id):

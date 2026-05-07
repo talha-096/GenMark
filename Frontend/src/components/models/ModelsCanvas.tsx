@@ -159,13 +159,13 @@ export const ModelsCanvas = React.memo(
         
         // Calculate smooth scroll velocity
         const scrollDelta = targetScroll - currentScroll;
-        currentScroll += scrollDelta * 0.1;
+        currentScroll += scrollDelta * 0.06; // slower lerp = smoother catch-up
         
-        // Apply a base base velocity, and add a heavy multiplier based on how fast you are scrolling
-        scrollVelocity = Math.abs(scrollDelta) * 0.05;
+        // Slow scroll-reactive boost — subtle, not hyper-warp
+        scrollVelocity = Math.abs(scrollDelta) * 0.015;
         // Dampen velocity smoothly
-        const activeSpeed = 0.3 + scrollVelocity; 
-        const speedMultiplier = Math.min(activeSpeed, 15); // Cap max speed
+        const activeSpeed = 0.15 + scrollVelocity; // lower base idle speed
+        const speedMultiplier = Math.min(activeSpeed, 5); // cap at 5 instead of 15
         
         // Update Warp Lines
         if (warpLines) {
@@ -179,7 +179,7 @@ export const ModelsCanvas = React.memo(
               
               // Tail stretches out behind based on current speed
               // A higher speed = a longer light tail
-              const stretch = Math.max(5, speedMultiplier * 8);
+              const stretch = Math.max(3, speedMultiplier * 4); // shorter tails at low speed
               
               // Update Head
               positions[i*6+2] = zStart;

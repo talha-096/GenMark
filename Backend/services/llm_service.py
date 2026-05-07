@@ -1,14 +1,38 @@
 import os
 from openai import OpenAI
+try:
+    from llama_cpp import Llama
+except ImportError:
+    Llama = None
+
+try:
+    import torch
+    from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+except ImportError:
+    torch = None
+    AutoModelForCausalLM = None
+from flask import current_app
 
 class LLMService:
     def __init__(self):
         # Support for multiple AI providers
         self.openai_key = os.getenv("OPENAI_API_KEY", "your-api-key-here")
         self.client = OpenAI(api_key=self.openai_key) if self.openai_key != "your-api-key-here" else None
+        
+        # Local LLM Support
+        self.local_llm = None
+        self.hf_model = None
+        self.hf_tokenizer = None
+        self.hf_pipeline = None
     
     def generate_text_to_text(self, prompt, brand_kit=None, content_type="text"):
         """Generate text content from text prompt"""
+        # Try Local LLM first if configured and available
+        if current_app.config.get('LOCAL_LLM_MODEL_PATH'):
+            local_result = self._generate_local(prompt, brand_kit, content_type)
+            if local_result and "error" not in local_result:
+                return local_result
+
         if not self.client:
             return self._mock_text_generation(prompt, brand_kit, content_type)
         
@@ -178,6 +202,143 @@ TASK: Create {content_type} content that:
             "type": "text",
             "brand_applied": brand_kit is not None
         }
+
+    def _get_local_model(self):
+        """Lazy load the local model singleton"""
+        if self.local_llm:
+            return self.local_llm
+        
+        if not Llama:
+            return None
+            
+        model_path = current_app.config.get('LOCAL_LLM_MODEL_PATH')
+        if not model_path or not os.path.exists(model_path):
+            print(f"Local model not found at: {model_path}")
+            return None
+            
+        try:
+            print(f"Loading Local Model from {model_path}...")
+            self.local_llm = Llama(
+                model_path=model_path,
+                n_ctx=current_app.config.get('LOCAL_LLM_CTX', 1024),
+                n_threads=current_app.config.get('LOCAL_LLM_THREADS', 4)
+            )
+            print("Local Model Loaded Successfully!")
+            return self.local_llm
+        except Exception as e:
+            print(f"Error loading local model: {e}")
+            return None
+
+    def _get_hf_model(self):
+        """Lazy load the transformers model singleton"""
+        if self.hf_pipeline:
+            return self.hf_pipeline
+            
+        if not AutoModelForCausalLM:
+            print("Transformers not installed")
+            return None
+            
+        model_path = current_app.config.get('LOCAL_LLM_MODEL_PATH')
+        if not model_path or not os.path.exists(model_path):
+            print(f"HF model path not found: {model_path}")
+            return None
+            
+        try:
+            print(f"Loading Transformers Model from {model_path}...")
+            print("Using FULL RAM as requested (Full Precision)")
+            
+            # Use float16 for better memory efficiency than float32 while still being 'full' for most marketing models
+            # Unless told otherwise, float16 is standard for inference.
+            dtype = torch.float16 if torch and torch.cuda.is_available() else torch.float32
+            
+            self.hf_tokenizer = AutoTokenizer.from_pretrained(model_path)
+            self.hf_model = AutoModelForCausalLM.from_pretrained(
+                model_path,
+                torch_dtype=dtype,
+                device_map="auto",
+                trust_remote_code=True
+            )
+            
+            self.hf_pipeline = pipeline(
+                "text-generation",
+                model=self.hf_model,
+                tokenizer=self.hf_tokenizer,
+                max_new_tokens=current_app.config.get('LOCAL_LLM_CTX', 2048) // 4
+            )
+            
+            print("Transformers Model Loaded Successfully!")
+            return self.hf_pipeline
+        except Exception as e:
+            print(f"Error loading hf model: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+
+    def _generate_local(self, prompt, brand_kit=None, content_type="text"):
+        """Generate content using local model (llama-cpp or transformers)"""
+        # Check if we should use transformers
+        if current_app.config.get('USE_TRANSFORMERS'):
+            return self._generate_transformers(prompt, brand_kit, content_type)
+            
+        llm = self._get_local_model()
+        if not llm:
+            return None
+            
+        system_prompt = self._build_brand_context(brand_kit, content_type)
+        # Use Mistral's instruction format: [INST] system \n user [/INST]
+        full_prompt = f"[INST] {system_prompt}\n\n{prompt} [/INST]"
+        
+        try:
+            output = llm(
+                full_prompt,
+                max_tokens=current_app.config.get('LOCAL_LLM_CTX', 1024) // 2,
+                temperature=0.7,
+                echo=False
+            )
+            
+            return {
+                "content": output['choices'][0]['text'].strip(),
+                "model": "mistral-7b-local",
+                "type": content_type,
+                "brand_applied": brand_kit is not None
+            }
+        except Exception as e:
+            return {"error": f"Local generation error: {str(e)}"}
+
+    def _generate_transformers(self, prompt, brand_kit=None, content_type="text"):
+        """Generate content using transformers pipeline"""
+        pipe = self._get_hf_model()
+        if not pipe:
+            return {"error": "Transformers model not loaded"}
+            
+        system_prompt = self._build_brand_context(brand_kit, content_type)
+        
+        # Determine model type for formatting
+        # For marketing models, usually a simple instruction format works
+        formatted_prompt = f"System: {system_prompt}\n\nUser: {prompt}\n\nAssistant:"
+        
+        try:
+            outputs = pipe(
+                formatted_prompt,
+                do_sample=True,
+                temperature=0.7,
+                top_k=50,
+                top_p=0.95
+            )
+            
+            generated_text = outputs[0]['generated_text']
+            # Clean up the output to only return the assistant's part
+            if "Assistant:" in generated_text:
+                generated_text = generated_text.split("Assistant:")[-1].strip()
+            
+            return {
+                "content": generated_text,
+                "model": "gem-marketing-local",
+                "type": content_type,
+                "brand_applied": brand_kit is not None
+            }
+        except Exception as e:
+            return {"error": f"Transformers generation error: {str(e)}"}
 
 # Singleton instance
 llm_service = LLMService()

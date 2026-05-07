@@ -99,14 +99,23 @@ def login():
         description: Invalid credentials
     """
     data = request.get_json()
+    print(f"DEBUG: Login request received for email: {data.get('email') if data else 'None'}")
     
     if not data or not data.get("email") or not data.get("password"):
+        print(f"DEBUG: Login failed due to missing credentials in body")
         return jsonify({"message": "Missing email or password"}), 400
         
-    user = User.verify_user(data["email"], data["password"])
-    
+    # First check if user exists
+    user = User.get_by_email(data["email"])
     if not user:
-        return jsonify({"message": "Invalid credentials"}), 401
+        print(f"DEBUG: Login failed: No account found for {data['email']}")
+        return jsonify({"message": "Account not found. Please register first."}), 401
+        
+    # User exists, now verify password
+    user = User.verify_user(data["email"], data["password"])
+    if not user:
+        print(f"DEBUG: Login failed: Invalid password for {data['email']}")
+        return jsonify({"message": "Invalid password."}), 401
         
     User.update_last_login(user["_id"])
     access_token = create_access_token(identity=str(user["_id"]), expires_delta=timedelta(days=1))

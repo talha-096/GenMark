@@ -25,6 +25,12 @@ boto3
 openai
 anthropic
 google-generativeai
+llama-cpp-python
+transformers
+torch
+accelerate
+safetensors
+bitsandbytes
 gunicorn
 
 # Testing (CI/CD)

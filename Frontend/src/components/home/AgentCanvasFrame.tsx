@@ -85,14 +85,14 @@ export const AgentCanvasFrame = () => {
   }, []);
 
   return (
-    <div ref={triggerRef} className="relative w-full h-[400vh] mt-32">
-      <div ref={containerRef} className="h-screen w-full flex items-center justify-center px-6 overflow-hidden">
+    <div ref={triggerRef} className="relative w-full h-[300vh] sm:h-[400vh] mt-16 md:mt-32">
+      <div ref={containerRef} className="h-screen w-full flex items-center justify-center px-4 sm:px-6">
         <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           
           <div className="flex flex-col gap-8 order-2 lg:order-1">
             <div className="space-y-4">
               <div className="font-mono text-sm tracking-widest text-primary font-bold uppercase">System C: Live Agent Canvas</div>
-              <h2 className="text-4xl md:text-6xl font-display font-black leading-tight">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-black leading-tight">
                 Watch the future <br /> 
                 <span className="gradient-text italic">generate in real-time.</span>
               </h2>
@@ -119,7 +119,7 @@ export const AgentCanvasFrame = () => {
           </div>
 
           <div className="order-1 lg:order-2 flex justify-center">
-            <GlassCard variant="featured" className="w-full max-w-[600px] h-[600px] p-0 overflow-hidden group shadow-glow-xl">
+            <GlassCard variant="featured" className="w-full max-w-[500px] h-auto min-h-[400px] lg:max-w-[580px] lg:h-[540px] p-0 overflow-hidden group shadow-glow-xl">
               <div className="h-12 border-b border-white/10 px-6 flex items-center justify-between bg-black/40">
                 <div className="flex gap-2">
                   <div className="w-3 h-3 rounded-full bg-red-500/40" />

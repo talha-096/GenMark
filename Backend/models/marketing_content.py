@@ -5,7 +5,7 @@ from bson import ObjectId
 class MarketingContent:
     @staticmethod
     def create_content(user_id, title, content, content_type="text", brand_kit_id=None, project_id=None, prompt=None):
-        posts = db.posts
+        posts = db.db.posts
         post_id = posts.insert_one({
             "user_id": ObjectId(user_id),
             "project_id": ObjectId(project_id) if project_id else None,
@@ -23,33 +23,32 @@ class MarketingContent:
     @staticmethod
     def get_by_user(user_id, limit=None):
         query = {"user_id": ObjectId(user_id)}
-        cursor = db.posts.find(query).sort("created_at", -1)
+        cursor = db.db.posts.find(query).sort("created_at", -1)
         if limit:
             cursor = cursor.limit(limit)
         return list(cursor)
 
     @staticmethod
     def get_by_project(project_id):
-        return list(db.posts.find({"project_id": ObjectId(project_id)}).sort("created_at", -1))
+        return list(db.db.posts.find({"project_id": ObjectId(project_id)}).sort("created_at", -1))
 
     @staticmethod
     def update_content(post_id, data):
         data["updated_at"] = datetime.utcnow()
         for key in ["_id", "user_id"]:
             data.pop(key, None)
-        return db.posts.update_one(
+        return db.db.posts.update_one(
             {"_id": ObjectId(post_id)},
             {"$set": data}
         )
 
     @staticmethod
     def delete_content(post_id):
-        return db.posts.delete_one({"_id": ObjectId(post_id)})
+        return db.db.posts.delete_one({"_id": ObjectId(post_id)})
 
     @staticmethod
     def get_all():
-        # Join with user to get auther name if needed (simple version here)
-        return list(db.posts.aggregate([
+        return list(db.db.posts.aggregate([
             {
                 "$lookup": {
                     "from": "users",
@@ -65,11 +64,11 @@ class MarketingContent:
 
     @staticmethod
     def get_by_id(post_id):
-        return db.posts.find_one({"_id": ObjectId(post_id)})
+        return db.db.posts.find_one({"_id": ObjectId(post_id)})
 
     @staticmethod
     def add_comment(post_id, user_id, text):
-        return db.posts.update_one(
+        return db.db.posts.update_one(
             {"_id": ObjectId(post_id)},
             {"$push": {
                 "comments": {
