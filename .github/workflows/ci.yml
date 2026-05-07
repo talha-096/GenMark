@@ -87,6 +87,10 @@ jobs:
       packages: write
     steps:
     - uses: actions/checkout@v4
+
+    - name: Lowercase repo name
+      run: |
+        echo "REPO_LOWER=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
     
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
@@ -107,8 +111,8 @@ jobs:
         context: ./Backend
         push: true
         tags: |
-          ghcr.io/${{ github.repository }}/backend:latest
-          ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
+          ghcr.io/${{ env.REPO_LOWER }}/backend:latest
+          ghcr.io/${{ env.REPO_LOWER }}/backend:${{ github.sha }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
       
@@ -120,7 +124,7 @@ jobs:
         build-args: |
           VITE_API_URL=https://api.genmark.ai
         tags: |
-          ghcr.io/${{ github.repository }}/frontend:latest
-          ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
+          ghcr.io/${{ env.REPO_LOWER }}/frontend:latest
+          ghcr.io/${{ env.REPO_LOWER }}/frontend:${{ github.sha }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
