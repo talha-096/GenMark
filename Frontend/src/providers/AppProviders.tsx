@@ -3,6 +3,7 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./AuthProvider";
 import { AppQueryProvider } from "./QueryProvider";
 import { SmoothScrollProvider } from "./SmoothScrollProvider";
+import { ThemeProvider } from "./ThemeProvider";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { Toaster } from "sonner";
 
@@ -18,16 +19,18 @@ export const AppProviders = ({ children }: AppProvidersProps) => {
 
   return (
     <ErrorBoundary>
-      <AppQueryProvider>
-        <AuthProvider>
-          <SmoothScrollProvider>
-            <BrowserRouter>
-              {children}
-              <Toaster position="bottom-right" theme="dark" closeButton richColors />
-            </BrowserRouter>
-          </SmoothScrollProvider>
-        </AuthProvider>
-      </AppQueryProvider>
+      <ThemeProvider defaultTheme="dark" storageKey="genmark-theme">
+        <AppQueryProvider>
+          <AuthProvider>
+            <SmoothScrollProvider>
+              <BrowserRouter>
+                {children}
+                <Toaster position="bottom-right" theme="dark" closeButton richColors />
+              </BrowserRouter>
+            </SmoothScrollProvider>
+          </AuthProvider>
+        </AppQueryProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 };

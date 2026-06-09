@@ -13,7 +13,7 @@ export const About = () => {
           className="text-5xl md:text-7xl font-display font-bold leading-tight mb-8"
         />
         <p className="text-xl md:text-2xl text-muted-foreground mt-8 max-w-2xl mx-auto">
-          We are engineers, designers, and marketers building the neural engine that powers modern brands.
+          We are engineers, designers, and marketers building the generative engine that powers modern brands.
         </p>
       </div>
 
@@ -26,14 +26,14 @@ export const About = () => {
             At GenMark, we asked a fundamental question: <strong>What if the friction simply disappeared?</strong>
           </p>
           <p>
-            What if you could hold a conversation with a neural network that implicitly understood your brand voice, possessed your color palettes, and could generate both the copy and the visuals required for a global campaign in seconds?
+            What if you could hold a conversation with a generative network that implicitly understood your brand voice, possessed your color palettes, and could generate both the copy and the visuals required for a global campaign in seconds?
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 my-16">
           <GlassCard className="p-8">
             <BrainCircuit size={32} className="text-primary mb-6" />
-            <h3 className="text-2xl font-display font-medium mb-3">Neural native.</h3>
+            <h3 className="text-2xl font-display font-medium mb-3">Generative native.</h3>
             <p className="text-muted-foreground">Every layer of the GenMark stack is built around generative multi-modal models. It's not a feature tacked onto legacy software; it is the foundation.</p>
           </GlassCard>
           
@@ -54,13 +54,13 @@ export const About = () => {
           </p>
         </div>
 
-        <div className="mt-24 pt-12 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="mt-24 pt-12 border-t border-glass/10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div>
               <div className="font-mono text-sm tracking-widest text-primary mb-2">JOIN THE TEAM</div>
               <h3 className="text-2xl font-display font-bold">We are hiring exceptional talent.</h3>
               <p className="text-muted-foreground mt-2">Remote-first. Mission-driven. AI-obsessed.</p>
             </div>
-            <button className="flex items-center gap-2 px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full font-medium transition-all group shrink-0">
+            <button className="flex items-center gap-2 px-8 py-4 bg-glass/5 hover:bg-glass/10 border border-glass/10 rounded-full font-medium transition-all group shrink-0">
                View Open Roles
                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
@@ -70,3 +70,4 @@ export const About = () => {
     </div>
   );
 };
+

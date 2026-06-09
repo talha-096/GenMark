@@ -34,6 +34,10 @@ export default {
         code:        "hsl(var(--code))",
         trustBlue:   "#0056D2",
         growthOrange: "#FF6B35",
+        glass: {
+          DEFAULT: "hsl(var(--glass))",
+          inverse: "hsl(var(--glass-inverse))",
+        },
       },
       boxShadow: {
         /* Glow family — primary blue */

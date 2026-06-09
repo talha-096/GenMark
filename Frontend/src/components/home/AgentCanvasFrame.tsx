@@ -101,11 +101,11 @@ export const AgentCanvasFrame = () => {
             <div className="relative space-y-4">
               {[
                 { id: "step-1", icon: Terminal, label: "Semantic Analysis", desc: "Understanding brand voice and strategic intent." },
-                { id: "step-2", icon: Cpu, label: "Neural Synthesis", desc: "Building core content structures across 7 layers." },
+                { id: "step-2", icon: Cpu, label: "Generative Synthesis", desc: "Building core content structures across 7 layers." },
                 { id: "step-3", icon: Palette, label: "Visual Integration", desc: "Generating high-fidelity brand-aligned assets." },
                 { id: "step-4", icon: Globe, label: "Global Distribution", desc: "Optimizing for omni-channel performance." },
               ].map((step, idx) => (
-                <div key={idx} className={`${step.id} flex items-center gap-6 p-6 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-sm transition-colors hover:bg-white/10`}>
+                <div key={idx} className={`${step.id} flex items-center gap-6 p-6 rounded-2xl bg-glass/[0.03] border border-glass/5 backdrop-blur-sm transition-colors hover:bg-glass/10`}>
                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
                       <step.icon size={24} />
                    </div>
@@ -120,7 +120,7 @@ export const AgentCanvasFrame = () => {
 
           <div className="order-1 lg:order-2 flex justify-center">
             <GlassCard variant="featured" className="w-full max-w-[500px] h-auto min-h-[400px] lg:max-w-[580px] lg:h-[540px] p-0 overflow-hidden group shadow-glow-xl">
-              <div className="h-12 border-b border-white/10 px-6 flex items-center justify-between bg-black/40">
+              <div className="h-12 border-b border-glass/10 px-6 flex items-center justify-between bg-glass-inverse/40">
                 <div className="flex gap-2">
                   <div className="w-3 h-3 rounded-full bg-red-500/40" />
                   <div className="w-3 h-3 rounded-full bg-amber-500/40" />
@@ -138,20 +138,20 @@ export const AgentCanvasFrame = () => {
                     </div>
                     <div className="text-xs text-muted-foreground opacity-50">
                        [system] authenticating secure-token... <br />
-                       [neural] loading content-signal-field v9... <br />
+                       [generative] loading content-signal-field v9... <br />
                        [vision] cache-hit strategy: enabled
                     </div>
                     
                     <div className="mt-12 space-y-12">
-                        <div className="h-64 w-full rounded-lg border border-white/10 bg-black flex items-center justify-center relative overflow-hidden">
+                        <div className="h-64 w-full rounded-lg border border-glass/10 bg-background flex items-center justify-center relative overflow-hidden">
                            <img 
                              className="gen-image absolute inset-0 w-full h-full object-cover" 
                              src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000&auto=format&fit=crop" 
                              alt="Synthesis" 
                            />
-                           <Layers className="text-white/20 w-24 h-24 animate-float relative z-10 drop-shadow-2xl" />
+                           <Layers className="text-foreground/20 w-24 h-24 animate-float relative z-10 drop-shadow-2xl" />
                            <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent z-10" />
-                           <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity z-20" />
+                           <div className="absolute inset-0 bg-glass/5 opacity-0 group-hover:opacity-100 transition-opacity z-20" />
                         </div>
                         
                         <div className="space-y-2">
@@ -159,7 +159,7 @@ export const AgentCanvasFrame = () => {
                               <span>Synthesis Progress</span>
                               <span className="gen-percentage font-bold text-primary">0%</span>
                            </div>
-                           <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                           <div className="h-1 w-full bg-glass/5 rounded-full overflow-hidden">
                               <div className="gen-progress h-full bg-[linear-gradient(90deg,hsl(var(--primary)),hsl(var(--primary-dark)))] shadow-glow-sm" />
                            </div>
                         </div>
@@ -174,3 +174,4 @@ export const AgentCanvasFrame = () => {
     </div>
   );
 };
+

@@ -14,7 +14,7 @@ const Pricing = () => {
       price: isAnnual ? 49 : 59,
       popular: false,
       features: [
-        "100 Neural Generations/mo",
+        "100 Generative Generations/mo",
         "50 Image Synthesis/mo",
         "1 Brand Kit",
         "Standard Export Formats",
@@ -27,7 +27,7 @@ const Pricing = () => {
       price: isAnnual ? 149 : 179,
       popular: true,
       features: [
-        "Unlimited Neural Generations",
+        "Unlimited Generative Generations",
         "500 Image Synthesis/mo",
         "10 Brand Kits",
         "API Access (1k req/mo)",
@@ -44,7 +44,7 @@ const Pricing = () => {
         "Unlimited Everything",
         "Unlimited Brand Kits",
         "Dedicated Account Manager",
-        "Custom Neural Model Tuning",
+        "Custom Generative Model Tuning",
         "SSO & Custom Security",
         "White-label Reports"
       ]
@@ -69,7 +69,7 @@ const Pricing = () => {
             role="switch" 
             aria-checked={isAnnual} 
             onClick={() => setIsAnnual(!isAnnual)} 
-            className="w-14 h-7 bg-surface/80 rounded-full border border-white/10 relative shadow-inner p-1 cursor-pointer transition-colors"
+            className="w-14 h-7 bg-surface/80 rounded-full border border-glass/10 relative shadow-inner p-1 cursor-pointer transition-colors"
           >
             <div className={cn("w-5 h-5 bg-primary rounded-full shadow-md transition-transform duration-300", isAnnual ? "translate-x-7" : "translate-x-0")} />
           </button>
@@ -93,7 +93,7 @@ const Pricing = () => {
             )}
             
             <h3 className="text-2xl font-display font-medium mb-2">{plan.name}</h3>
-            <p className="text-muted-foreground text-sm mb-6 pb-6 border-b border-white/10 h-16">{plan.description}</p>
+            <p className="text-muted-foreground text-sm mb-6 pb-6 border-b border-glass/10 h-16">{plan.description}</p>
             
             <div className="mb-8 font-display">
               {typeof plan.price === 'number' ? (
@@ -110,7 +110,7 @@ const Pricing = () => {
               "w-full py-4 rounded-xl font-semibold mb-8 transition-all hover:scale-[1.02] active:scale-[0.98]",
               plan.popular 
                 ? "bg-[linear-gradient(135deg,hsl(var(--secondary)),hsl(var(--secondary-dark)))] text-primary-foreground shadow-glow-sm hover:shadow-glow-md" 
-                : "bg-white/5 border border-white/10 text-foreground hover:bg-white/10"
+                : "bg-glass/5 border border-glass/10 text-foreground hover:bg-glass/10"
             )}>
               {typeof plan.price === 'number' ? "Get Started" : "Contact Sales"}
             </button>
@@ -128,12 +128,12 @@ const Pricing = () => {
       </div>
       
       {/* Fill empty space */}
-      <div className="mt-24 max-w-5xl mx-auto flex gap-4 overflow-hidden rounded-2xl border border-white/10 bg-surface/30 px-8 py-6">
+      <div className="mt-24 max-w-5xl mx-auto flex gap-4 overflow-hidden rounded-2xl border border-glass/10 bg-surface/30 px-8 py-6">
           <div className="flex-1">
               <h3 className="text-xl font-display font-medium text-foreground mb-2">Need a custom enterprise solution?</h3>
               <p className="text-muted-foreground text-sm">We provide tailored SLAs, dedicated nodes, and custom LLM tuning.</p>
           </div>
-          <button className="self-center px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-full text-sm font-medium transition-colors">
+          <button className="self-center px-6 py-3 bg-glass/5 hover:bg-glass/10 border border-glass/5 rounded-full text-sm font-medium transition-colors">
               Talk to Engineering
           </button>
       </div>
@@ -142,3 +142,4 @@ const Pricing = () => {
 };
 
 export { Pricing };
+

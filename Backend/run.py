@@ -17,7 +17,7 @@ if __name__ == '__main__':
             port=5000, 
             debug=True, 
             threaded=True,
-            use_reloader=True,
+            use_reloader=False,
             reloader_type='stat'
         )
     except Exception as e:

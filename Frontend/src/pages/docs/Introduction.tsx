@@ -10,7 +10,7 @@ export const Introduction = () => {
         <h1 className="text-5xl font-display font-black mb-4">Introduction to <GradientText>GenMark</GradientText></h1>
         <p className="text-xl text-muted-foreground leading-relaxed">
           Welcome to the documentation for GenMark, the ultimate AI-powered content ecosystem for enterprise marketing teams. 
-          GenMark is designed to be the "Neural Brain" of your content production pipeline.
+          GenMark is designed to be the "Generative Brain" of your content production pipeline.
         </p>
       </div>
 
@@ -18,7 +18,7 @@ export const Introduction = () => {
         <GlassCard className="p-8 group hover:border-primary/40 transition-all">
           <BookOpen className="text-primary mb-4" size={32} />
           <h3 className="text-xl font-display font-bold mb-2">Core Philosophy</h3>
-          <p className="text-sm text-muted-foreground mb-6">Learn how GenMark maintains absolute brand consistency across every neural synthesis.</p>
+          <p className="text-sm text-muted-foreground mb-6">Learn how GenMark maintains absolute brand consistency across every generative synthesis.</p>
           <Link to="/docs/philosophy" className="text-primary text-xs font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
              <span>Read Philosophy</span>
              <ChevronRight size={14} />
@@ -40,11 +40,11 @@ export const Introduction = () => {
         <h2 className="text-3xl font-display font-bold">The Problem</h2>
         <p className="text-muted-foreground leading-relaxed">
           In a world of fragmented AI tools, maintaining a unified brand voice is nearly impossible. Modern marketing teams struggle with 
-          content velocity vs. brand consistency. GenMark solves this by integrating a multi-modal neural engine that observes, 
+          content velocity vs. brand consistency. GenMark solves this by integrating a multi-modal generative engine that observes, 
           learns, and synthesizes your brand's unique semantic signature.
         </p>
         
-        <div className="p-8 rounded-3xl bg-surface/30 border border-white/5 backdrop-blur-md">
+        <div className="p-8 rounded-3xl bg-surface/30 border border-glass/5 backdrop-blur-md">
            <h3 className="text-xl font-display font-bold mb-4 flex items-center gap-2">
               <Shield className="text-green-500" size={24} />
               Enterprise Security First
@@ -60,11 +60,11 @@ export const Introduction = () => {
         <h2 className="text-3xl font-display font-bold">Key Capabilities</h2>
         <div className="space-y-4 not-prose">
            {[
-              { title: "Neural Copy Synthesis", desc: "Understanding the nuance of your tone, from professional white papers to playful social media hooks." },
+              { title: "Generative Copy Synthesis", desc: "Understanding the nuance of your tone, from professional white papers to playful social media hooks." },
               { title: "Visual Brand Engineering", desc: "Generating stunning visuals that not only look great but feel like they were made by your in-house design team." },
               { title: "Semantic Analysis", desc: "Deeply auditing your existing assets to extract and document your brand's visual and textual language." },
            ].map((cap, i) => (
-              <div key={i} className="flex gap-4 p-4 rounded-xl hover:bg-white/5 transition-all">
+              <div key={i} className="flex gap-4 p-4 rounded-xl hover:bg-glass/5 transition-all">
                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mt-1">
                     <div className="w-2 h-2 rounded-full bg-primary" />
                  </div>
@@ -77,13 +77,13 @@ export const Introduction = () => {
         </div>
       </div>
 
-      <div className="mt-20 p-10 rounded-3xl bg-[linear-gradient(135deg,rgba(59,130,246,0.1),rgba(168,85,247,0.1))] border border-white/10 text-center not-prose">
+      <div className="mt-20 p-10 rounded-3xl bg-[linear-gradient(135deg,rgba(59,130,246,0.1),rgba(168,85,247,0.1))] border border-glass/10 text-center not-prose">
          <h3 className="text-2xl font-display font-bold mb-4">Ready to build the future?</h3>
          <div className="flex justify-center gap-4">
             <Link to="/docs/quickstart" className="px-8 py-3 rounded-full bg-primary text-primary-foreground font-bold hover:scale-105 transition-all">
                Quickstart Guide
             </Link>
-            <Link to="/signup" className="px-8 py-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all font-bold">
+            <Link to="/signup" className="px-8 py-3 rounded-full bg-glass/5 border border-glass/10 hover:bg-glass/10 transition-all font-bold">
                Get Started Free
             </Link>
          </div>
@@ -91,3 +91,4 @@ export const Introduction = () => {
     </article>
   );
 };
+

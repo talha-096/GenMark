@@ -41,7 +41,7 @@ export const CreativeTransformation = () => {
     <section ref={sectionRef} className="relative py-32 px-6 overflow-hidden bg-[radial-gradient(circle_at_bottom,rgba(59,130,246,0.05),transparent_70%)]">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <div className="font-mono text-xs tracking-[0.4em] text-primary/80 mb-4 uppercase">Neural Output</div>
+          <div className="font-mono text-xs tracking-[0.4em] text-primary/80 mb-4 uppercase">Generative Output</div>
           <h2 className="text-5xl md:text-7xl font-display font-black leading-tight">
             From Prompt to <br />
             <GradientText size="section">Reality.</GradientText>
@@ -52,7 +52,7 @@ export const CreativeTransformation = () => {
           {/* Decorative Frame Elements */}
           <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 to-secondary/30 rounded-[2rem] blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-1000" />
           
-          <GlassCard className="relative p-2 rounded-[2rem] border-white/10 shadow-2xl overflow-hidden aspect-[16/9] md:aspect-[21/9]">
+          <GlassCard className="relative p-2 rounded-[2rem] border-glass/10 shadow-2xl overflow-hidden aspect-[16/9] md:aspect-[21/9]">
             <div className="relative w-full h-full rounded-[1.5rem] overflow-hidden">
               <img 
                 ref={imageRef}
@@ -82,3 +82,4 @@ export const CreativeTransformation = () => {
     </section>
   );
 };
+

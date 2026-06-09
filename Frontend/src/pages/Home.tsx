@@ -55,6 +55,12 @@ export const Home = () => {
         <div className="max-w-6xl mx-auto w-full text-center mt-[5vh] z-10 relative">
           <div className="hero-content">
             <div className="font-mono text-xs tracking-[0.4em] text-primary/80 mb-8 uppercase animate-pulse-glow">Intelligence Re-imagined</div>
+            <div className="flex justify-center mb-6 animate-fade-in-up">
+              <div className="relative group">
+                <img src="/logo.png" alt="GenMark Logo" className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-[2rem] shadow-glow-xl group-hover:scale-110 transition-transform duration-500 z-10 relative bg-background" />
+                <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full group-hover:bg-primary/40 transition-colors duration-500"></div>
+              </div>
+            </div>
             <h1 className="text-6xl sm:text-8xl md:text-9xl lg:text-[10rem] font-black font-display tracking-tighter leading-none mb-4 drop-shadow-2xl">
               <GradientText size="hero" className="block hover:scale-105 transition-transform duration-700 cursor-default">GenMark</GradientText>
             </h1>
@@ -73,7 +79,7 @@ export const Home = () => {
                 <span>Try the Engine</span>
                 <Zap size={20} className="group-hover:fill-current" />
               </Link>
-              <Link to="/features" className="w-full sm:w-auto bg-white/[0.03] border border-white/10 hover:bg-white/[0.08] text-foreground font-semibold px-10 py-5 text-lg rounded-full backdrop-blur-md transition-all">
+              <Link to="/features" className="w-full sm:w-auto bg-glass/[0.03] border border-glass/10 hover:bg-glass/[0.08] text-foreground font-semibold px-10 py-5 text-lg rounded-full backdrop-blur-md transition-all">
                 Explore Features
               </Link>
             </div>
@@ -109,7 +115,7 @@ export const Home = () => {
                 { title: "Absolute Consistency", desc: "Every asset is analyzed against your brand kit for perfect alignment." },
                 { title: "Data-Driven Decisions", desc: "View real-time analytics to understand creative performance." }
               ].map((value, i) => (
-                <GlassCard key={i} className="p-8 group hover:bg-white/5 transition-colors">
+                <GlassCard key={i} className="p-8 group hover:bg-glass/5 transition-colors">
                   <h3 className="text-xl font-bold mb-3 flex items-center gap-3">
                     <CheckCircle2 size={20} className="text-primary" />
                     {value.title}
@@ -129,7 +135,7 @@ export const Home = () => {
         <div className="max-w-7xl mx-auto w-full z-10 relative">
           <div className="text-center mb-16">
             <div className="font-mono text-sm tracking-widest text-primary mb-4">THE ECOSYSTEM</div>
-            <h2 className="text-3xl sm:text-5xl md:text-6xl font-display font-bold mb-8">One Neural Engine. <br/><GradientText>Infinite Possibilities.</GradientText></h2>
+            <h2 className="text-3xl sm:text-5xl md:text-6xl font-display font-bold mb-8">One Generative Engine. <br/><GradientText>Infinite Possibilities.</GradientText></h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               GenMark's architecture is built of specialized layers, each dedicated to a critical aspect of your marketing workflow.
             </p>
@@ -140,7 +146,7 @@ export const Home = () => {
               { 
                 title: "The Engine", 
                 path: "/engine", 
-                desc: "The core neural processing unit for copy and visual synthesis.",
+                desc: "The core generative processing unit for copy and visual synthesis.",
                 tags: ["LLM", "Diffusion", "Motion"]
               },
               { 
@@ -156,7 +162,7 @@ export const Home = () => {
                 tags: ["Web3", "Agents", "Future"]
               }
             ].map((node, i) => (
-              <GlassCard key={i} className="p-10 flex flex-col justify-between group hover:bg-white/5 transition-all">
+              <GlassCard key={i} className="p-10 flex flex-col justify-between group hover:bg-glass/5 transition-all">
                 <div>
                   <h3 className="text-3xl font-display font-bold mb-4 group-hover:text-primary transition-colors">{node.title}</h3>
                   <p className="text-muted-foreground mb-8 text-lg">{node.desc}</p>
@@ -178,7 +184,7 @@ export const Home = () => {
       </section>
 
       {/* FINAL CTA */}
-      <section className="relative py-24 md:py-40 px-4 sm:px-6 text-center border-t border-white/5">
+      <section className="relative py-24 md:py-40 px-4 sm:px-6 text-center border-t border-glass/5">
         <div className="max-w-4xl mx-auto z-10 relative">
           <h2 className="text-4xl sm:text-6xl md:text-8xl font-display font-black mb-10 leading-tight">
             Ready to <GradientText>Scale?</GradientText>
@@ -188,7 +194,7 @@ export const Home = () => {
               <span>GET STARTED NOW</span>
               <Zap size={24} />
             </Link>
-            <Link to="/login" className="px-12 py-6 font-bold text-xl border border-white/20 rounded-full hover:bg-white/5 transition-all">
+            <Link to="/login" className="px-12 py-6 font-bold text-xl border border-glass/20 rounded-full hover:bg-glass/5 transition-all">
               MEMBER LOGIN
             </Link>
           </div>
@@ -199,3 +205,4 @@ export const Home = () => {
     </div>
   );
 };
+

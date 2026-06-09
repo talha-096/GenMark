@@ -32,11 +32,11 @@ export const Sidebar = React.memo(() => {
   return (
     <aside
       className={cn(
-        "h-screen bg-surface-raised border-r border-white/[0.05] flex flex-col transition-all duration-300 relative z-20 shrink-0",
+        "h-screen bg-surface-raised border-r border-glass/[0.05] flex flex-col transition-all duration-300 relative z-20 shrink-0",
         collapsed ? "w-[72px]" : "w-[240px]"
       )}
     >
-      <div className={cn("h-20 flex items-center shrink-0 border-b border-white/[0.05]", collapsed ? "justify-center" : "px-6 justify-between")}>
+      <div className={cn("h-20 flex items-center shrink-0 border-b border-glass/[0.05]", collapsed ? "justify-center" : "px-6 justify-between")}>
         {!collapsed && (
           <Link to="/" className="font-display font-black text-xl tracking-tight leading-none group">
             <GradientText>GenMark</GradientText>
@@ -45,7 +45,7 @@ export const Sidebar = React.memo(() => {
         <button
           onClick={() => setCollapsed(!collapsed)}
           className={cn(
-            "p-1.5 rounded-md hover:bg-white/[0.05] text-muted-foreground hover:text-foreground transition-colors",
+            "p-1.5 rounded-md hover:bg-glass/[0.05] text-muted-foreground hover:text-foreground transition-colors",
             collapsed && "mx-auto"
           )}
         >
@@ -64,7 +64,7 @@ export const Sidebar = React.memo(() => {
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group text-sm font-medium",
                 isActive 
                   ? "bg-primary/10 text-primary shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] border border-primary/20" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/[0.03] border border-transparent",
+                  : "text-muted-foreground hover:text-foreground hover:bg-glass/[0.03] border border-transparent",
                 collapsed && "justify-center"
               )}
               title={collapsed ? link.label : undefined}

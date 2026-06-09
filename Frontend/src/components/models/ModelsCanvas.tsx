@@ -199,9 +199,9 @@ export const ModelsCanvas = React.memo(
         }
 
         const m = modelsRef.current;
-        if (m.neuralBrain && m.neuralBrain.visible) {
-            m.neuralBrain.rotation.y += 0.012 + (speedMultiplier * 0.001); // Spin faster on scroll
-            m.neuralBrain.rotation.x += 0.005; 
+        if (m.generativeBrain && m.generativeBrain.visible) {
+            m.generativeBrain.rotation.y += 0.012 + (speedMultiplier * 0.001); // Spin faster on scroll
+            m.generativeBrain.rotation.x += 0.005; 
         }
         if (m.brandRing && m.brandRing.visible) {
             m.brandRing.rotation.z += 0.025 + (speedMultiplier * 0.002);
@@ -243,3 +243,4 @@ export const ModelsCanvas = React.memo(
   })
 );
 ModelsCanvas.displayName = "ModelsCanvas";
+

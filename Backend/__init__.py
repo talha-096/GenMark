@@ -18,14 +18,15 @@ def create_app(config_name='default'):
     }})
     
     limiter.init_app(app)
-    scheduler.init_app(app)
     swagger.init_app(app)
     
-    # Start Scheduler
-    if not scheduler.running and app.config.get('SCHEDULER_API_ENABLED'):
-        from jobs.cleanup import cleanup_old_content
-        scheduler.add_job(id='cleanup_job', func=cleanup_old_content, trigger='interval', days=1)
-        scheduler.start()
+    if not app.config.get('TESTING'):
+        scheduler.init_app(app)
+        # Start Scheduler
+        if not scheduler.running and app.config.get('SCHEDULER_API_ENABLED'):
+            from jobs.cleanup import cleanup_old_content
+            scheduler.add_job(id='cleanup_job', func=cleanup_old_content, trigger='interval', days=1)
+            scheduler.start()
 
     # Register Blueprints from api directory
     from api.auth import auth_bp
@@ -34,6 +35,7 @@ def create_app(config_name='default'):
     from api.project_routes import project_bp
     from api.generation_routes import generation_bp
     from api.dashboard_routes import dashboard_bp
+    from api.settings_routes import settings_bp
     
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(content_bp, url_prefix='/api/content')
@@ -41,6 +43,7 @@ def create_app(config_name='default'):
     app.register_blueprint(project_bp, url_prefix='/api/projects')
     app.register_blueprint(generation_bp, url_prefix='/api/generate')
     app.register_blueprint(dashboard_bp, url_prefix='/api/dashboard')
+    app.register_blueprint(settings_bp, url_prefix='/api/settings')
 
     @jwt.invalid_token_loader
     def invalid_token_callback(error):

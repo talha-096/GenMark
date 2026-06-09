@@ -65,7 +65,7 @@ export const Navbar = () => {
         className={cn(
           "fixed top-0 left-0 right-0 w-full z-50 transition-all duration-500 ease-in-out",
           isScrolled
-            ? "py-3 bg-[hsl(220_22%_4%/0.75)] backdrop-blur-2xl border-b border-white/[0.08] shadow-[0_1px_0_rgba(255,255,255,0.04),0_4px_32px_rgba(0,0,0,0.5)]"
+            ? "py-3 bg-[hsl(220_22%_4%/0.75)] backdrop-blur-2xl border-b border-glass/[0.08] shadow-[0_1px_0_rgba(255,255,255,0.04),0_4px_32px_rgba(0,0,0,0.5)]"
             : "py-5 bg-transparent"
         )}
       >
@@ -78,8 +78,8 @@ export const Navbar = () => {
               aria-label="GenMark Home"
               className="flex items-center gap-2.5 group flex-shrink-0"
             >
-              <div className="relative w-8 h-8 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/25 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:border-primary/50 group-hover:shadow-glow-sm">
-                <Activity size={16} className="text-primary" />
+              <div className="relative w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-glow-sm overflow-hidden bg-background">
+                <img src="/logo.png" alt="GenMark Logo" className="w-full h-full object-cover" />
                 {/* Pulse ring */}
                 <span className="absolute inset-0 rounded-xl border border-primary/20 animate-ping opacity-40" />
               </div>
@@ -99,16 +99,16 @@ export const Navbar = () => {
                     "relative px-4 py-2 text-[13px] font-medium tracking-wide rounded-lg transition-all duration-200",
                     "group overflow-hidden",
                     isActive(link.path)
-                      ? "text-white"
-                      : "text-white/50 hover:text-white"
+                      ? "text-foreground"
+                      : "text-foreground/50 hover:text-foreground"
                   )}
                 >
                   {/* Active background */}
                   {isActive(link.path) && (
-                    <span className="absolute inset-0 bg-white/[0.06] rounded-lg" />
+                    <span className="absolute inset-0 bg-glass/[0.06] rounded-lg" />
                   )}
                   {/* Hover background */}
-                  <span className="absolute inset-0 bg-white/0 group-hover:bg-white/[0.04] rounded-lg transition-colors duration-200" />
+                  <span className="absolute inset-0 bg-glass/0 group-hover:bg-glass/[0.04] rounded-lg transition-colors duration-200" />
                   <span className="relative">{link.name}</span>
                   {/* Active underline dot */}
                   {isActive(link.path) && (
@@ -137,7 +137,7 @@ export const Navbar = () => {
               {user ? (
                 <div className="relative group">
                   <button
-                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.05] border border-white/10 text-white text-sm font-semibold hover:bg-white/[0.10] hover:border-white/20 transition-all duration-200"
+                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-glass/[0.05] border border-glass/10 text-foreground text-sm font-semibold hover:bg-glass/[0.10] hover:border-glass/20 transition-all duration-200"
                     aria-haspopup="true"
                     aria-expanded="false"
                   >
@@ -147,14 +147,14 @@ export const Navbar = () => {
                     <span>{user.name}</span>
                     <ChevronDown size={12} className="opacity-60" />
                   </button>
-                  <div className="absolute right-0 top-full mt-2 w-52 py-1.5 bg-[hsl(220_20%_7%/0.95)] border border-white/[0.08] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.6)] backdrop-blur-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 translate-y-1 group-hover:translate-y-0">
-                    <Link to="/dashboard" className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-white/80 hover:text-white hover:bg-white/[0.06] transition-colors rounded-lg mx-1.5">
+                  <div className="absolute right-0 top-full mt-2 w-52 py-1.5 bg-[hsl(220_20%_7%/0.95)] border border-glass/[0.08] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.6)] backdrop-blur-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 translate-y-1 group-hover:translate-y-0">
+                    <Link to="/dashboard" className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-glass/[0.06] transition-colors rounded-lg mx-1.5">
                       Dashboard
                     </Link>
-                    <Link to="/settings" className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-white/80 hover:text-white hover:bg-white/[0.06] transition-colors rounded-lg mx-1.5">
+                    <Link to="/settings" className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-glass/[0.06] transition-colors rounded-lg mx-1.5">
                       Settings
                     </Link>
-                    <div className="my-1.5 h-px bg-white/[0.06] mx-3" />
+                    <div className="my-1.5 h-px bg-glass/[0.06] mx-3" />
                     <button
                       onClick={() => logout()}
                       className="w-full text-left flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/[0.08] transition-colors rounded-lg mx-1.5"
@@ -166,14 +166,14 @@ export const Navbar = () => {
               ) : (
                 <Link
                   to="/login"
-                  className="group relative flex items-center gap-2 px-5 py-2.5 rounded-full overflow-hidden text-sm font-bold text-white transition-all duration-300 hover:scale-[1.03] active:scale-[0.97]"
+                  className="group relative flex items-center gap-2 px-5 py-2.5 rounded-full overflow-hidden text-sm font-bold text-foreground transition-all duration-300 hover:scale-[1.03] active:scale-[0.97]"
                   style={{
                     background: "linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 45%))",
                     boxShadow: "0 0 20px rgba(59,130,246,0.35), inset 0 1px 0 rgba(255,255,255,0.15)",
                   }}
                 >
                   {/* Hover shimmer */}
-                  <span className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300" />
+                  <span className="absolute inset-0 bg-glass/0 group-hover:bg-glass/10 transition-colors duration-300" />
                   <span className="relative">Access Hub</span>
                   <ChevronRight size={14} className="relative opacity-80" />
                 </Link>
@@ -183,7 +183,7 @@ export const Navbar = () => {
             {/* Mobile Hamburger */}
             <button
               ref={hamburgerRef}
-              className="lg:hidden relative flex items-center justify-center w-10 h-10 rounded-xl text-white/70 hover:text-white hover:bg-white/[0.08] border border-transparent hover:border-white/10 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="lg:hidden relative flex items-center justify-center w-10 h-10 rounded-xl text-foreground/70 hover:text-foreground hover:bg-glass/[0.08] border border-transparent hover:border-glass/10 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-menu"
@@ -238,7 +238,7 @@ export const Navbar = () => {
                   "animate-fade-in-up",
                   isActive(link.path)
                     ? "text-primary bg-primary/10 border border-primary/20"
-                    : "text-white/70 hover:text-white hover:bg-white/[0.04] border border-transparent"
+                    : "text-foreground/70 hover:text-foreground hover:bg-glass/[0.04] border border-transparent"
                 )}
                 style={{ animationDelay: `${i * 60}ms` }}
               >
@@ -247,18 +247,18 @@ export const Navbar = () => {
             ))}
           </nav>
 
-          <div className="w-full max-w-xs h-px bg-white/[0.07] mb-6" />
+          <div className="w-full max-w-xs h-px bg-glass/[0.07] mb-6" />
 
           {/* Auth section */}
           {user ? (
             <div className="w-full max-w-xs flex flex-col items-center gap-3 animate-fade-in-up delay-300">
-              <p className="text-sm font-mono text-white/40">
-                Signed in as <span className="text-white font-bold">{user.name}</span>
+              <p className="text-sm font-mono text-foreground/40">
+                Signed in as <span className="text-foreground font-bold">{user.name}</span>
               </p>
               <Link
                 to="/dashboard"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full text-center py-3.5 text-base font-bold text-white bg-white/[0.06] border border-white/10 rounded-2xl hover:bg-white/[0.10] transition-colors"
+                className="w-full text-center py-3.5 text-base font-bold text-foreground bg-glass/[0.06] border border-glass/10 rounded-2xl hover:bg-glass/[0.10] transition-colors"
               >
                 Dashboard
               </Link>
@@ -274,7 +274,7 @@ export const Navbar = () => {
               <Link
                 to="/login"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full flex items-center justify-center gap-2 px-8 py-4 rounded-full text-lg font-black text-white hover:scale-[1.02] active:scale-[0.98] transition-all"
+                className="w-full flex items-center justify-center gap-2 px-8 py-4 rounded-full text-lg font-black text-foreground hover:scale-[1.02] active:scale-[0.98] transition-all"
                 style={{
                   background: "linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 45%))",
                   boxShadow: "0 0 24px rgba(59,130,246,0.4)",
@@ -285,7 +285,7 @@ export const Navbar = () => {
               <Link
                 to="/signup"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full text-center py-3 text-base font-medium text-white/40 hover:text-white/70 transition-colors"
+                className="w-full text-center py-3 text-base font-medium text-foreground/40 hover:text-foreground/70 transition-colors"
               >
                 Create Account →
               </Link>

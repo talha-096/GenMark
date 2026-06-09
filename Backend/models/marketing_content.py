@@ -4,9 +4,9 @@ from bson import ObjectId
 
 class MarketingContent:
     @staticmethod
-    def create_content(user_id, title, content, content_type="text", brand_kit_id=None, project_id=None, prompt=None):
+    def create_content(user_id, title, content, content_type="text", brand_kit_id=None, project_id=None, prompt=None, **kwargs):
         posts = db.db.posts
-        post_id = posts.insert_one({
+        doc = {
             "user_id": ObjectId(user_id),
             "project_id": ObjectId(project_id) if project_id else None,
             "title": title,
@@ -17,7 +17,10 @@ class MarketingContent:
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow(),
             "comments": []
-        }).inserted_id
+        }
+        for k, v in kwargs.items():
+            doc[k] = v
+        post_id = posts.insert_one(doc).inserted_id
         return post_id
 
     @staticmethod

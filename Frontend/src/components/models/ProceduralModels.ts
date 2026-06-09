@@ -12,10 +12,10 @@ export const createProceduralModels = (scene: THREE.Scene) => {
     roughness: 0.25,
     transparent: true,
     opacity: 0.9,
-    wireframe: true, // Use wireframe to give that technical neural feel
+    wireframe: true, // Use wireframe to give that technical generative feel
   });
 
-  // 1. Neural Brain
+  // 1. Generative Brain
   const brainGroup = new THREE.Group();
   const brainCore = new THREE.Mesh(new THREE.IcosahedronGeometry(10, 2), genMarkMaterial);
   brainGroup.add(brainCore);
@@ -33,7 +33,7 @@ export const createProceduralModels = (scene: THREE.Scene) => {
   brainGroup.position.set(0, 0, -300); // Initial off-screen position for GSAP
   brainGroup.visible = false; // Hidden until GSAP shows it
   scene.add(brainGroup);
-  models.neuralBrain = brainGroup;
+  models.generativeBrain = brainGroup;
 
   // 2. Content Cube
   const cubeGroup = new THREE.Group();
@@ -97,3 +97,4 @@ export const createProceduralModels = (scene: THREE.Scene) => {
 
   return models;
 };
+

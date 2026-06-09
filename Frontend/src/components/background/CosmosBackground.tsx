@@ -112,7 +112,7 @@ export const CosmosBackground: React.FC = () => {
     });
     scene.add(nebGroups);
 
-    // Layer 2: Neural Grid
+    // Layer 2: Generative Grid
     const gMat = new THREE.ShaderMaterial({
       vertexShader: gridVert,
       fragmentShader: gridFrag,
@@ -248,3 +248,4 @@ export const CosmosBackground: React.FC = () => {
 
   return <div ref={mountRef} className="fixed inset-0 z-0 pointer-events-none" />;
 };
+

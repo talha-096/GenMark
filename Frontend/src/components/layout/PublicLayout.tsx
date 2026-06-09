@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import ASMRStaticBackground from "@/components/ui/asmr-background";
-import NeuralBackground from "@/components/ui/flow-field-background";
+import GenerativeBackground from "@/components/ui/flow-field-background";
 
 export const PublicLayout = React.memo(() => {
   return (
@@ -11,9 +11,9 @@ export const PublicLayout = React.memo(() => {
 
       {/* ── Multi-layer Atmospheric Background ── */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden bg-[#070b14]">
-        {/* Layer 1: Indigo Neural Flow Field (Bottom) */}
+        {/* Layer 1: Indigo Generative Flow Field (Bottom) */}
         <div className="absolute inset-0 -z-30 opacity-100">
-          <NeuralBackground 
+          <GenerativeBackground 
             color="#a5b4fc" // Lighter Indigo
             trailOpacity={0.12} 
             speed={0.7}
@@ -50,3 +50,4 @@ export const PublicLayout = React.memo(() => {
   );
 });
 PublicLayout.displayName = "PublicLayout";
+

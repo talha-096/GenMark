@@ -2,7 +2,7 @@ import React from "react";
 import { cn } from "@/lib/utils";
 
 interface GradientTextProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: "primary" | "neural";
+  variant?: "primary" | "generative";
   size?: "hero" | "section" | "card" | "body";
 }
 
@@ -13,7 +13,7 @@ export const GradientText = React.memo(
         <span
           ref={ref}
           className={cn(
-            variant === "primary" ? "gradient-text" : "gradient-text-neural",
+            variant === "primary" ? "gradient-text" : "gradient-text-generative",
             size === "hero" && "text-5xl md:text-7xl lg:text-9xl",
             size === "section" && "text-3xl md:text-5xl lg:text-6xl",
             size === "card" && "text-xl md:text-2xl lg:text-3xl",
@@ -28,3 +28,4 @@ export const GradientText = React.memo(
   )
 );
 GradientText.displayName = "GradientText";
+

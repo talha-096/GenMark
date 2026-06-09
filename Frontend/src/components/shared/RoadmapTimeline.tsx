@@ -11,7 +11,7 @@ interface TimelineNode {
 
 const NODES: TimelineNode[] = [
   { date: "Q2 2026", title: "Cinematic Motion Engine", description: "AI-generated video content from text prompts." },
-  { date: "Q3 2026", title: "Neural Asset Refiner", description: "Iterate on existing designs with AI-guided refinement." },
+  { date: "Q3 2026", title: "Generative Asset Refiner", description: "Iterate on existing designs with AI-guided refinement." },
   { date: "2027", title: "Predictive Market Intelligence", description: "Real-time audience and trend analysis built in." },
   { date: "2028", title: "Fully Autonomous", description: "End-to-end autonomous campaign generation and optimization." }
 ];
@@ -100,3 +100,4 @@ export const RoadmapTimeline = React.memo(({ className }: { className?: string }
   );
 });
 RoadmapTimeline.displayName = "RoadmapTimeline";
+

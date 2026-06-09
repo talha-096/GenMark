@@ -17,13 +17,13 @@ export const GlassCard = React.memo(
             // Base
             "relative overflow-hidden rounded-2xl transition-all duration-300",
             // Glass base
-            "bg-white/[0.025] backdrop-blur-md",
-            "border border-white/[0.06]",
+            "bg-glass/[0.025] backdrop-blur-md",
+            "border border-glass/[0.06]",
             "shadow-[0_4px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.04)]",
             // Hoverable
             hoverable && [
-              "hover:bg-white/[0.05]",
-              "hover:border-white/[0.12]",
+              "hover:bg-glass/[0.05]",
+              "hover:border-glass/[0.12]",
               "hover:shadow-[0_8px_40px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06)]",
               "hover:-translate-y-0.5",
               "cursor-default",
@@ -40,9 +40,9 @@ export const GlassCard = React.memo(
               hoverable && "hover:border-orange-500/30",
             ],
             variant === "subtle" && [
-              "bg-transparent border-white/[0.04]",
+              "bg-transparent border-glass/[0.04]",
               "shadow-none",
-              hoverable && "hover:bg-white/[0.03]",
+              hoverable && "hover:bg-glass/[0.03]",
             ],
             // Extra glow
             glow && "shadow-[0_0_0_1px_rgba(59,130,246,0.15),0_0_40px_rgba(59,130,246,0.1)]",

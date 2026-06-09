@@ -38,15 +38,15 @@ export const Footer = () => {
           {/* Brand column */}
           <div className="flex flex-col gap-5 lg:col-span-1">
             <Link to="/" className="flex items-center gap-2.5 w-fit group">
-              <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:border-primary/40 transition-colors">
-                <Activity size={16} className="text-primary" />
+              <div className="w-8 h-8 rounded-xl border border-primary/20 flex items-center justify-center group-hover:border-primary/40 transition-colors overflow-hidden bg-background">
+                <img src="/logo.png" alt="GenMark Logo" className="w-full h-full object-cover" />
               </div>
               <span className="text-xl font-black tracking-tighter" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                 <GradientText>GenMark</GradientText>
               </span>
             </Link>
 
-            <p className="text-sm text-white/40 leading-relaxed max-w-xs">
+            <p className="text-sm text-foreground/40 leading-relaxed max-w-xs">
               The ultimate AI-powered content ecosystem for enterprise marketing teams.
               Strategic content, visual synthesis, absolute brand consistency.
             </p>
@@ -58,7 +58,7 @@ export const Footer = () => {
                   key={label}
                   href={href}
                   aria-label={label}
-                  className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center text-white/40 hover:text-primary hover:bg-primary/[0.08] hover:border-primary/20 transition-all duration-200 hover:-translate-y-0.5"
+                  className="w-9 h-9 rounded-xl bg-glass/[0.04] border border-glass/[0.07] flex items-center justify-center text-foreground/40 hover:text-primary hover:bg-primary/[0.08] hover:border-primary/20 transition-all duration-200 hover:-translate-y-0.5"
                 >
                   <Icon size={15} />
                 </a>
@@ -74,7 +74,7 @@ export const Footer = () => {
                 <li key={label}>
                   <Link
                     to={path}
-                    className="text-sm text-white/45 hover:text-white transition-colors duration-150 flex items-center gap-1.5 group"
+                    className="text-sm text-foreground/45 hover:text-foreground transition-colors duration-150 flex items-center gap-1.5 group"
                   >
                     <span className="w-0 group-hover:w-2 overflow-hidden transition-all duration-200 opacity-0 group-hover:opacity-100 text-primary text-xs">›</span>
                     {label}
@@ -92,7 +92,7 @@ export const Footer = () => {
                 <li key={label}>
                   <Link
                     to={path}
-                    className="text-sm text-white/45 hover:text-white transition-colors duration-150 flex items-center gap-1.5 group"
+                    className="text-sm text-foreground/45 hover:text-foreground transition-colors duration-150 flex items-center gap-1.5 group"
                   >
                     <span className="w-0 group-hover:w-2 overflow-hidden transition-all duration-200 opacity-0 group-hover:opacity-100 text-primary text-xs">›</span>
                     {label}
@@ -105,17 +105,17 @@ export const Footer = () => {
           {/* Newsletter */}
           <div className="flex flex-col gap-4">
             <h4 className="text-xs font-mono font-bold text-primary/80 uppercase tracking-widest">Stay Updated</h4>
-            <p className="text-sm text-white/40 leading-snug">
+            <p className="text-sm text-foreground/40 leading-snug">
               Subscribe for product updates and early access announcements.
             </p>
             <div className="flex gap-2">
               <input
                 type="email"
                 placeholder="your@email.com"
-                className="bg-white/[0.04] border border-white/[0.07] focus:border-primary/30 focus:bg-white/[0.06] rounded-xl px-4 py-2.5 text-sm flex-1 outline-none text-white placeholder:text-white/25 transition-all duration-200"
+                className="bg-glass/[0.04] border border-glass/[0.07] focus:border-primary/30 focus:bg-glass/[0.06] rounded-xl px-4 py-2.5 text-sm flex-1 outline-none text-foreground placeholder:text-foreground/25 transition-all duration-200"
               />
               <button
-                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white transition-all duration-200 hover:scale-105 active:scale-95"
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-foreground transition-all duration-200 hover:scale-105 active:scale-95"
                 style={{
                   background: "linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 45%))",
                   boxShadow: "0 0 16px rgba(59,130,246,0.3)",
@@ -124,18 +124,18 @@ export const Footer = () => {
                 <ArrowUpRight size={16} />
               </button>
             </div>
-            <p className="text-[11px] text-white/20 italic leading-snug">
+            <p className="text-[11px] text-foreground/20 italic leading-snug">
               No spam. Unsubscribe at any time.
             </p>
           </div>
         </div>
 
         {/* Bottom bar */}
-        <div className="pt-8 border-t border-white/[0.05] flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-white/25">
+        <div className="pt-8 border-t border-glass/[0.05] flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-foreground/25">
           <div className="flex gap-6">
-            <Link to="/privacy" className="hover:text-white/60 transition-colors">Privacy Policy</Link>
-            <Link to="/terms"   className="hover:text-white/60 transition-colors">Terms of Service</Link>
-            <Link to="/cookies" className="hover:text-white/60 transition-colors">Cookie Strategy</Link>
+            <Link to="/privacy" className="hover:text-foreground/60 transition-colors">Privacy Policy</Link>
+            <Link to="/terms"   className="hover:text-foreground/60 transition-colors">Terms of Service</Link>
+            <Link to="/cookies" className="hover:text-foreground/60 transition-colors">Cookie Strategy</Link>
           </div>
           <p className="font-mono">© {new Date().getFullYear()} GenMark AI — High-Velocity Architecture</p>
         </div>

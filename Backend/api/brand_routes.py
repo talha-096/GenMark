@@ -24,7 +24,8 @@ def create_brand_kit():
         data["name"],
         data["colors"],
         data.get("fonts", []),
-        data.get("logo_url")
+        data.get("logo_url"),
+        data.get("guidelines", "")
     )
     
     return jsonify({"message": "Brand Kit created", "id": str(kit_id)}), 201

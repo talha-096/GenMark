@@ -42,7 +42,7 @@ export const AnimatedProgressBar = React.memo(({ label, percentage, className, .
         <span className="font-semibold text-foreground/90">{label}</span>
         <span className="font-mono text-primary">{percentage}%</span>
       </div>
-      <div className="h-2 w-full bg-white/[0.05] rounded-full overflow-hidden border border-white/[0.05]">
+      <div className="h-2 w-full bg-glass/[0.05] rounded-full overflow-hidden border border-glass/[0.05]">
         <div 
           ref={barRef}
           className="h-full bg-primary shadow-glow-sm rounded-full"

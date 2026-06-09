@@ -4,7 +4,7 @@ from bson import ObjectId
 
 class BrandKit:
     @staticmethod
-    def create_brand_kit(user_id, project_id, name, colors, fonts, logo_url=None):
+    def create_brand_kit(user_id, project_id, name, colors, fonts, logo_url=None, guidelines=""):
         brand_kits = db.db.brand_kits
         kit_id = brand_kits.insert_one({
             "user_id": ObjectId(user_id),
@@ -13,7 +13,7 @@ class BrandKit:
             "colors": colors,
             "fonts": fonts,
             "logo_url": logo_url,
-            "guidelines": "",
+            "guidelines": guidelines,
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow()
         }).inserted_id

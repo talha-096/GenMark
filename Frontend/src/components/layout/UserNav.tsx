@@ -22,7 +22,7 @@ export const UserNav = React.memo(() => {
       <div className="flex items-center gap-3">
         <div className="hidden md:flex flex-col items-end">
           <span className="text-sm font-medium leading-none">{user.name}</span>
-          <span className="text-xs text-muted-foreground mt-1 bg-white/[0.05] px-2 py-0.5 rounded-full border border-white/10">
+          <span className="text-xs text-muted-foreground mt-1 bg-glass/[0.05] px-2 py-0.5 rounded-full border border-glass/10">
             {user.plan} Plan
           </span>
         </div>

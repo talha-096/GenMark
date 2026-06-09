@@ -16,10 +16,10 @@ export const WorkstationPlaceholder = ({ title, description }: { title: string, 
           <div className="flex justify-center">
             <div className="relative group">
               <div className="absolute -inset-4 bg-primary/20 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              <div className="w-32 h-32 rounded-[2rem] bg-black/40 border border-white/10 overflow-hidden relative shadow-2xl">
+              <div className="w-32 h-32 rounded-[2rem] bg-glass-inverse/40 border border-glass/10 overflow-hidden relative shadow-2xl">
                 <img 
                   src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=2070&auto=format&fit=crop" 
-                  alt="Neural Core" 
+                  alt="Generative Core" 
                   className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
@@ -41,7 +41,7 @@ export const WorkstationPlaceholder = ({ title, description }: { title: string, 
             <button 
               onClick={() => {
                 toast.success("Synchronizing Workstation", { 
-                  description: `Connecting ${title} nodes to neural engine...` 
+                  description: `Connecting ${title} nodes to generative engine...` 
                 });
               }}
               className="px-8 py-4 rounded-full bg-primary text-primary-foreground font-bold shadow-glow-sm hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
@@ -51,7 +51,7 @@ export const WorkstationPlaceholder = ({ title, description }: { title: string, 
             </button>
             <button 
               onClick={() => navigate("/dashboard")}
-              className="px-8 py-4 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 font-bold transition-all flex items-center gap-2 text-muted-foreground hover:text-foreground"
+              className="px-8 py-4 rounded-full bg-glass/5 border border-glass/10 hover:bg-glass/10 font-bold transition-all flex items-center gap-2 text-muted-foreground hover:text-foreground"
             >
               <span>Return to Core</span>
               <ChevronRight size={18} />
@@ -60,9 +60,9 @@ export const WorkstationPlaceholder = ({ title, description }: { title: string, 
 
           <div className="pt-8">
             <div className="flex items-center justify-center gap-4">
-              <div className="h-px flex-1 bg-white/5" />
+              <div className="h-px flex-1 bg-glass/5" />
               <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-[0.3em]">Engine v4.0.2-Beta</span>
-              <div className="h-px flex-1 bg-white/5" />
+              <div className="h-px flex-1 bg-glass/5" />
             </div>
           </div>
         </div>
@@ -70,3 +70,4 @@ export const WorkstationPlaceholder = ({ title, description }: { title: string, 
     </div>
   );
 };
+

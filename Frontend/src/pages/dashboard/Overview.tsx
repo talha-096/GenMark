@@ -79,15 +79,15 @@ export const Overview = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-display font-bold tracking-tight">System Overview</h1>
-          <p className="text-muted-foreground mt-1">Real-time neural engine telemetry and creative output metrics.</p>
+          <p className="text-muted-foreground mt-1">Real-time generative engine telemetry and creative output metrics.</p>
         </div>
-        <div className="flex items-center gap-2 bg-surface/30 p-1 rounded-xl border border-white/5">
+        <div className="flex items-center gap-2 bg-surface/30 p-1 rounded-xl border border-glass/5">
           {["1D", "1W", "1M", "ALL"].map((f) => (
             <button
               key={f}
               onClick={() => setTimeFilter(f)}
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                timeFilter === f ? "bg-primary text-primary-foreground shadow-glow-sm" : "hover:bg-white/5 text-muted-foreground"
+                timeFilter === f ? "bg-primary text-primary-foreground shadow-glow-sm" : "hover:bg-glass/5 text-muted-foreground"
               }`}
             >
               {f}
@@ -98,7 +98,7 @@ export const Overview = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, i) => (
-          <div key={i} className="p-6 rounded-2xl bg-surface/30 border border-white/5 hover:border-primary/20 transition-all group overflow-hidden relative">
+          <div key={i} className="p-6 rounded-2xl bg-surface/30 border border-glass/5 hover:border-primary/20 transition-all group overflow-hidden relative">
             <div className={`absolute -right-4 -bottom-4 w-24 h-24 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity`}>
                <stat.icon size={96} />
             </div>
@@ -130,7 +130,7 @@ export const Overview = () => {
                  <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-400" /> Text</div>
               </div>
            </div>
-           <div className="h-[300px] w-full bg-surface/30 rounded-2xl border border-white/5 flex items-end justify-between p-6 gap-2">
+           <div className="h-[300px] w-full bg-surface/30 rounded-2xl border border-glass/5 flex items-end justify-between p-6 gap-2">
               {[45, 60, 35, 78, 55, 90, 65, 82, 48, 70, 85, 60].map((h, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
                    <div className="w-full relative flex flex-col justify-end gap-1 h-full">
@@ -148,8 +148,8 @@ export const Overview = () => {
                 { label: "Mobile", value: "28%", icon: Smartphone, color: "text-blue-400" },
                 { label: "API", value: "10%", icon: MousePointer2, color: "text-purple-400" },
               ].map((plat, i) => (
-                <div key={i} className="p-4 rounded-xl bg-surface/30 border border-white/5 flex items-center gap-3">
-                   <div className={`p-2 rounded-lg bg-white/5 ${plat.color}`}>
+                <div key={i} className="p-4 rounded-xl bg-surface/30 border border-glass/5 flex items-center gap-3">
+                   <div className={`p-2 rounded-lg bg-glass/5 ${plat.color}`}>
                       <plat.icon size={16} />
                    </div>
                    <div>
@@ -173,18 +173,18 @@ export const Overview = () => {
            </div>
            <div className="space-y-4">
               {isLoading ? (
-                  <div className="flex flex-col items-center justify-center py-20 bg-surface/20 rounded-2xl border border-dashed border-white/5">
+                  <div className="flex flex-col items-center justify-center py-20 bg-surface/20 rounded-2xl border border-dashed border-glass/5">
                       <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
-                      <p className="text-muted-foreground animate-pulse">Synchronizing neural vault...</p>
+                      <p className="text-muted-foreground animate-pulse">Synchronizing generative vault...</p>
                   </div>
               ) : activityData.length === 0 ? (
                   <div className="text-center py-6">
-                     <div className="text-sm font-bold text-white mb-1">Start your first operation</div>
-                     <p className="text-xs text-muted-foreground">Neural engine is on standby.</p>
+                     <div className="text-sm font-bold text-foreground mb-1">Start your first operation</div>
+                     <p className="text-xs text-muted-foreground">Generative engine is on standby.</p>
                   </div>
               ) : (
                 activityData.slice(0, 5).map((item, i) => (
-                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl hover:bg-white/5 transition-all group border border-transparent hover:border-white/5">
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl hover:bg-glass/5 transition-all group border border-transparent hover:border-glass/5">
                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                         {item.type === 'image' ? <ImageIcon size={14} className="text-primary" /> : <Type size={14} className="text-primary" />}
                      </div>
@@ -200,7 +200,7 @@ export const Overview = () => {
            <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/20 to-blue-500/10 border border-primary/20 relative overflow-hidden group">
               <div className="absolute -right-8 -top-8 w-32 h-32 bg-primary/10 blur-3xl group-hover:bg-primary/20 transition-all" />
               <h3 className="font-display font-bold text-lg relative z-10">Alpha Access</h3>
-              <p className="text-xs text-muted-foreground mt-2 relative z-10 leading-relaxed">Your neural quota resets on April 24th. Priority queuing is active for your account.</p>
+              <p className="text-xs text-muted-foreground mt-2 relative z-10 leading-relaxed">Your generative quota resets on April 24th. Priority queuing is active for your account.</p>
               <button className="w-full mt-4 py-2 bg-primary text-primary-foreground text-xs font-bold rounded-lg shadow-glow-sm hover:scale-[1.02] active:scale-[0.98] transition-all relative z-10">
                 Upgrade Engine
               </button>
@@ -210,3 +210,4 @@ export const Overview = () => {
     </div>
   );
 };
+

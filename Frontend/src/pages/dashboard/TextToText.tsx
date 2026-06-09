@@ -17,8 +17,9 @@ import {
 import { Button } from "@/components/shared/Button";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/providers/AuthProvider";
+import { HistorySidebar, HistoryItem } from "@/components/shared/HistorySidebar";
 
 interface BrandKitData {
     _id: string;
@@ -28,6 +29,8 @@ interface BrandKitData {
 
 export const TextToText = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [prompt, setPrompt] = useState("");
   const [contentType, setContentType] = useState("social");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -75,9 +78,10 @@ export const TextToText = () => {
             setGeneratedContent(response.content);
             setLogs(prevLogs => [
                 ...prevLogs, 
-                "[neural] semantic mapping complete.", 
+                "[generative] semantic mapping complete.", 
                 "[engine] copy synthesized successfully."
             ]);
+            queryClient.invalidateQueries({ queryKey: ["generation-history", "text"] });
             toast.success("Copy Generated", {
                 description: "Your brand-aligned copy is ready.",
             });
@@ -98,14 +102,34 @@ export const TextToText = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 pb-20 animate-in fade-in duration-700">
+    <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8 pb-20 animate-in fade-in duration-700">
+      <HistorySidebar
+        type="text"
+        selectedId={selectedHistoryId}
+        onSelectItem={(item: HistoryItem) => {
+          setSelectedHistoryId(item.id);
+          setPrompt(item.prompt || "");
+          setSelectedBrand(item.brand_kit_id || null);
+          setGeneratedContent(item.content);
+          setLogs(prev => [
+            ...prev,
+            `[system] restored text generation from archive: ID ${item.id}`,
+            `[system] restored prompt: "${item.prompt}"`,
+            `[system] brand alignment context restored.`
+          ]);
+          toast.info("Generation Restored", {
+            description: "Loaded previous generation parameters."
+          });
+        }}
+      />
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8">
       <div className="lg:col-span-4 space-y-6">
         <GlassCard className="p-8">
            <div className="flex items-center gap-3 mb-6">
               <div className="p-2 rounded-lg bg-primary/10 text-primary">
                  <Type size={20} />
               </div>
-              <h3 className="text-xl font-display font-bold">Neural Copy</h3>
+              <h3 className="text-xl font-display font-bold">Generative Copy</h3>
            </div>
            
            <div className="space-y-6">
@@ -117,10 +141,10 @@ export const TextToText = () => {
                         className={`p-3 rounded-xl border flex items-center gap-3 transition-all text-left ${
                             selectedBrand === null 
                             ? "bg-primary/10 border-primary/50" 
-                            : "bg-white/5 border-white/10 hover:bg-white/10"
+                            : "bg-glass/5 border-glass/10 hover:bg-glass/10"
                         }`}
                       >
-                        <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-lg bg-glass/5 border border-glass/10 flex items-center justify-center">
                             <Palette size={16} className="text-muted-foreground" />
                         </div>
                         <div>
@@ -137,12 +161,12 @@ export const TextToText = () => {
                             className={`p-3 rounded-xl border flex items-center gap-3 transition-all text-left ${
                                 selectedBrand === brand._id 
                                 ? "bg-primary/10 border-primary/50" 
-                                : "bg-white/5 border-white/10 hover:bg-white/10"
+                                : "bg-glass/5 border-glass/10 hover:bg-glass/10"
                             }`}
                           >
                             <div className="w-8 h-8 rounded-lg flex items-center justify-center relative overflow-hidden" style={{ background: brand.colors && brand.colors.length > 0 ? (brand.colors.length > 1 ? `linear-gradient(135deg, ${brand.colors[0]}, ${brand.colors[1]})` : brand.colors[0]) : "#3b82f6" }}>
-                                <ShieldCheck size={16} className="text-white relative z-10" />
-                                <div className="absolute inset-0 bg-black/20" />
+                                <ShieldCheck size={16} className="text-foreground relative z-10" />
+                                <div className="absolute inset-0 bg-glass-inverse/20" />
                             </div>
                             <div>
                                 <div className="text-xs font-bold">{brand.name}</div>
@@ -161,7 +185,7 @@ export const TextToText = () => {
                         <button 
                            key={t.id} 
                            onClick={() => setContentType(t.id)}
-                           className={`p-3 rounded-xl border flex items-center gap-2 transition-all ${t.id === contentType ? "bg-primary/20 border-primary text-primary" : "bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10"}`}
+                           className={`p-3 rounded-xl border flex items-center gap-2 transition-all ${t.id === contentType ? "bg-primary/20 border-primary text-primary" : "bg-glass/5 border-glass/10 text-muted-foreground hover:bg-glass/10"}`}
                         >
                            <t.icon size={14} />
                            <span className="text-[11px] font-medium">{t.name}</span>
@@ -176,7 +200,7 @@ export const TextToText = () => {
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     placeholder="Describe the promotion or message..."
-                    className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:ring-1 focus:ring-primary/50 transition-all resize-none"
+                    className="w-full h-32 bg-glass/5 border border-glass/10 rounded-2xl p-4 text-sm outline-none focus:ring-1 focus:ring-primary/50 transition-all resize-none"
                  />
               </div>
 
@@ -191,8 +215,8 @@ export const TextToText = () => {
            </div>
         </GlassCard>
 
-        <GlassCard className="p-6 bg-black/60 border-white/5 font-mono text-[10px]">
-           <div className="flex items-center gap-2 mb-4 text-muted-foreground pb-2 border-b border-white/5">
+        <GlassCard className="p-6 bg-glass-inverse/60 border-glass/5 font-mono text-[10px]">
+           <div className="flex items-center gap-2 mb-4 text-muted-foreground pb-2 border-b border-glass/5">
               <Terminal size={12} />
               <span className="uppercase tracking-[0.2em]">Live Engine Logs</span>
            </div>
@@ -209,7 +233,7 @@ export const TextToText = () => {
       </div>
 
       <div className="lg:col-span-8 space-y-6">
-        <GlassCard className="min-h-[600px] relative overflow-hidden flex flex-col p-8 border-white/5">
+        <GlassCard className="min-h-[600px] relative overflow-hidden flex flex-col p-8 border-glass/5">
            <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
                  <div className="p-2 rounded-lg bg-primary/10 text-primary">
@@ -229,7 +253,7 @@ export const TextToText = () => {
            {generatedContent ? (
               <div className="flex-1 whitespace-pre-wrap font-sans text-lg leading-relaxed text-foreground/90 animate-in fade-in slide-in-from-bottom-2 duration-700">
                  {generatedContent}
-                 <div className="mt-12 pt-8 border-t border-white/5 flex items-center justify-between opacity-60">
+                 <div className="mt-12 pt-8 border-t border-glass/5 flex items-center justify-between opacity-60">
                     <div className="flex items-center gap-4 text-xs font-mono">
                        <div className="flex items-center gap-1.5"><Clock size={12} /> Just now</div>
                        <div className="flex items-center gap-1.5"><ShieldCheck size={12} /> Brand Aligned</div>
@@ -239,14 +263,16 @@ export const TextToText = () => {
               </div>
            ) : (
               <div className="flex-1 flex flex-col items-center justify-center gap-6 text-muted-foreground/40 italic">
-                 <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
+                 <div className="w-16 h-16 rounded-full bg-glass/5 flex items-center justify-center">
                     <Type size={32} className="opacity-20" />
                  </div>
-                 <p>Neural context required to initialize copy flow.</p>
+                 <p>Generative context required to initialize copy flow.</p>
               </div>
            )}
-        </GlassCard>
+         </GlassCard>
+      </div>
       </div>
     </div>
   );
 };
+

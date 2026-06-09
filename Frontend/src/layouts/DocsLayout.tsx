@@ -30,7 +30,7 @@ export const DocsLayout = () => {
     {
       title: "The Engine",
       items: [
-        { name: "Neural Copy", path: "/docs/copy", icon: Terminal },
+        { name: "Generative Copy", path: "/docs/copy", icon: Terminal },
         { name: "Visual Synthesis", path: "/docs/visual", icon: Globe },
         { name: "Semantic Analysis", path: "/docs/semantic", icon: Star },
       ]
@@ -48,7 +48,7 @@ export const DocsLayout = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-foreground">
       {/* Mobile Nav Header */}
-      <div className="lg:hidden h-16 border-b border-white/5 bg-black/40 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-50">
+      <div className="lg:hidden h-16 border-b border-glass/5 bg-glass-inverse/40 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-50">
         <Link to="/" className="text-xl font-display font-black"><GradientText>GenMark</GradientText></Link>
         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
           {isMobileMenuOpen ? <X /> : <Menu />}
@@ -58,7 +58,7 @@ export const DocsLayout = () => {
       <div className="max-w-8xl mx-auto flex">
         {/* Sidebar */}
         <aside className={`
-          fixed lg:sticky top-16 lg:top-0 h-[calc(100vh-64px)] lg:h-screen w-full lg:w-80 border-r border-white/5 bg-[#050505] z-40 transition-all duration-300
+          fixed lg:sticky top-16 lg:top-0 h-[calc(100vh-64px)] lg:h-screen w-full lg:w-80 border-r border-glass/5 bg-[#050505] z-40 transition-all duration-300
           ${isMobileMenuOpen ? "left-0" : "-left-full lg:left-0"}
         `}>
           <div className="p-8 hidden lg:block">
@@ -75,10 +75,10 @@ export const DocsLayout = () => {
                   placeholder="Search docs..." 
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
-                      toast.success("Docs Search", { description: "Searching neural documentation for your query..." });
+                      toast.success("Docs Search", { description: "Searching generative documentation for your query..." });
                     }
                   }}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-xs outline-none focus:ring-1 focus:ring-primary/50"
+                  className="w-full bg-glass/5 border border-glass/10 rounded-lg py-2 pl-10 pr-4 text-xs outline-none focus:ring-1 focus:ring-primary/50"
                />
             </div>
 
@@ -97,7 +97,7 @@ export const DocsLayout = () => {
                             className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all group ${
                               isActive 
                                 ? "bg-primary/10 text-primary font-bold" 
-                                : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                                : "text-muted-foreground hover:bg-glass/5 hover:text-foreground"
                             }`}
                           >
                             <item.icon size={16} className={isActive ? "text-primary" : "opacity-40 group-hover:opacity-100"} />
@@ -118,11 +118,11 @@ export const DocsLayout = () => {
           <Outlet />
           
           {/* Footer inside content */}
-          <footer className="mt-24 pt-12 border-t border-white/5 flex justify-between items-center text-xs text-muted-foreground">
+          <footer className="mt-24 pt-12 border-t border-glass/5 flex justify-between items-center text-xs text-muted-foreground">
              <div className="flex gap-4">
                 <button onClick={() => toast.info("GitHub", { description: "Opening GenMark Open Source Repository..." })} className="hover:text-primary transition-colors">GitHub</button>
-                <button onClick={() => toast.info("Discord", { description: "Joining the GenMark Neural Community..." })} className="hover:text-primary transition-colors">Discord</button>
-                <button onClick={() => toast.info("X / Twitter", { description: "Following GenMark Neural Updates..." })} className="hover:text-primary transition-colors">X / Twitter</button>
+                <button onClick={() => toast.info("Discord", { description: "Joining the GenMark Generative Community..." })} className="hover:text-primary transition-colors">Discord</button>
+                <button onClick={() => toast.info("X / Twitter", { description: "Following GenMark Generative Updates..." })} className="hover:text-primary transition-colors">X / Twitter</button>
              </div>
              <p>© {new Date().getFullYear()} GenMark AI</p>
           </footer>
@@ -131,3 +131,4 @@ export const DocsLayout = () => {
     </div>
   );
 };
+

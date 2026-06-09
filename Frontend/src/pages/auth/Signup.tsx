@@ -63,7 +63,7 @@ export const Signup = () => {
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required 
-                            className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-secondary/50 transition-colors" 
+                            className="bg-glass/5 border border-glass/10 rounded-xl px-4 py-3 outline-none focus:border-secondary/50 transition-colors" 
                         />
                     </div>
                     <div className="flex flex-col gap-2">
@@ -74,7 +74,7 @@ export const Signup = () => {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required 
-                            className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-secondary/50 transition-colors" 
+                            className="bg-glass/5 border border-glass/10 rounded-xl px-4 py-3 outline-none focus:border-secondary/50 transition-colors" 
                         />
                     </div>
                     <div className="flex flex-col gap-2">
@@ -85,7 +85,7 @@ export const Signup = () => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required 
-                            className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-secondary/50 transition-colors" 
+                            className="bg-glass/5 border border-glass/10 rounded-xl px-4 py-3 outline-none focus:border-secondary/50 transition-colors" 
                         />
                     </div>
                     
@@ -94,16 +94,17 @@ export const Signup = () => {
                         disabled={isLoading}
                         className={`mt-4 bg-[linear-gradient(135deg,hsl(var(--secondary)),hsl(var(--secondary-dark)))] text-primary-foreground font-semibold px-6 py-4 rounded-xl shadow-glow-orange hover:shadow-glow-md transition-all active:scale-[0.98] ${isLoading ? 'opacity-70 pointer-events-none' : ''}`}
                     >
-                        {isLoading ? 'Creating Account...' : 'Create Neural Account'}
+                        {isLoading ? 'Creating Account...' : 'Create Generative Account'}
                     </button>
                     <p className="text-xs text-center text-muted-foreground mt-2">By continuing, you agree to our precise Terms of Service.</p>
                 </form>
 
-                <p className="text-center text-sm text-muted-foreground mt-8 border-t border-white/10 pt-6">
-                    Already have an account? <Link to="/login" className="text-secondary hover:text-white transition-colors">Sign In</Link>
+                <p className="text-center text-sm text-muted-foreground mt-8 border-t border-glass/10 pt-6">
+                    Already have an account? <Link to="/login" className="text-secondary hover:text-foreground transition-colors">Sign In</Link>
                 </p>
             </GlassCard>
         </div>
     )
 };
+
 

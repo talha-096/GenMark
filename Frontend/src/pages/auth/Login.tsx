@@ -36,7 +36,7 @@ export const Login = () => {
                 
                 <div className="text-center mb-10">
                    <h1 className="text-3xl font-display font-bold mb-2"><GradientText>Welcome Back</GradientText></h1>
-                   <p className="text-muted-foreground">Access your neural ecosystem.</p>
+                   <p className="text-muted-foreground">Access your generative ecosystem.</p>
                 </div>
 
                 <form onSubmit={handleLogin} className="flex flex-col gap-5">
@@ -54,13 +54,13 @@ export const Login = () => {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required 
-                            className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-primary/50 transition-colors" 
+                            className="bg-glass/5 border border-glass/10 rounded-xl px-4 py-3 outline-none focus:border-primary/50 transition-colors" 
                         />
                     </div>
                     <div className="flex flex-col gap-2">
                         <div className="flex justify-between items-center">
                            <label className="text-sm font-medium">Password</label>
-                           <a href="#" className="text-xs text-primary hover:text-white transition-colors">Forgot Password?</a>
+                           <a href="#" className="text-xs text-primary hover:text-foreground transition-colors">Forgot Password?</a>
                         </div>
                         <input 
                             type="password" 
@@ -68,7 +68,7 @@ export const Login = () => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required 
-                            className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-primary/50 transition-colors" 
+                            className="bg-glass/5 border border-glass/10 rounded-xl px-4 py-3 outline-none focus:border-primary/50 transition-colors" 
                         />
                     </div>
                     
@@ -82,10 +82,11 @@ export const Login = () => {
                 </form>
 
                 <p className="text-center text-sm text-muted-foreground mt-8">
-                    Don't have an account? <Link to="/signup" className="text-primary hover:text-white transition-colors">Request Access</Link>
+                    Don't have an account? <Link to="/signup" className="text-primary hover:text-foreground transition-colors">Request Access</Link>
                 </p>
             </GlassCard>
         </div>
     )
 };
+
 

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 const FEATURES = [
   {
     icon: Sparkles,
-    title: "Neural Copy Generation",
+    title: "Generative Copy Generation",
     description: "Write long-form articles, short-form posts, and ad copy in your exact brand voice. Never stare at a blank page again.",
     replaces: "Jasper / ChatGPT",
     colorClass: "text-primary",
@@ -67,7 +67,7 @@ const FEATURES = [
   {
     icon: FileSearch,
     title: "Image to Text",
-    description: "Neural analysis of visual assets to generate metadata, SEO tags, and descriptive copy. Coming soon.",
+    description: "Generative analysis of visual assets to generate metadata, SEO tags, and descriptive copy. Coming soon.",
     replaces: "Manual Tagging",
     colorClass: "text-secondary",
     bgClass: "bg-secondary/10",
@@ -103,7 +103,7 @@ export const Features = () => {
       <div className="text-center mb-24">
         <div className="font-mono text-sm tracking-widest text-primary mb-3">CONSOLIDATE YOUR STACK</div>
         <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-bold mb-6">
-          One Neural Engine.<br />
+          One Generative Engine.<br />
           <GradientText>Infinite Capabilities.</GradientText>
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -115,7 +115,7 @@ export const Features = () => {
         {FEATURES.map((feat, i) => (
           <GlassCard key={i} className="p-8 flex flex-col h-full group">
             {feat.status && (
-              <div className="absolute top-6 right-6 px-3 py-1 rounded bg-white/10 text-[10px] font-mono font-bold tracking-widest uppercase border border-white/5">
+              <div className="absolute top-6 right-6 px-3 py-1 rounded bg-glass/10 text-[10px] font-mono font-bold tracking-widest uppercase border border-glass/5">
                 {feat.status}
               </div>
             )}
@@ -130,7 +130,7 @@ export const Features = () => {
             <h3 className="text-2xl font-display font-bold mb-4">{feat.title}</h3>
             <p className="text-muted-foreground mb-8 flex-1">{feat.description}</p>
             
-            <div className="pt-6 border-t border-white/10 mt-auto">
+            <div className="pt-6 border-t border-glass/10 mt-auto">
               <div className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-2">Replaces</div>
               <div className="font-medium text-foreground/90">{feat.replaces}</div>
             </div>
@@ -142,7 +142,7 @@ export const Features = () => {
       <div className="mt-24 max-w-7xl mx-auto">
          <div className="text-center mb-16 roadmap-intro">
             <div className="font-mono text-sm tracking-widest text-primary mb-3 uppercase">Evolutionary Logic</div>
-            <h2 className="text-3xl md:text-4xl font-display font-bold mb-6 text-white">The <GradientText>Neural Roadmap</GradientText></h2>
+            <h2 className="text-3xl md:text-4xl font-display font-bold mb-6 text-foreground">The <GradientText>Generative Roadmap</GradientText></h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">GenMark isn't just a static tool; it's a living ecosystem designed to evolve with the shifting landscape of digital expression.</p>
          </div>
          
@@ -153,13 +153,13 @@ export const Features = () => {
          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-32">
             <GlassCard className="p-10 flex flex-col gap-6 roadmap-intro">
                <Target size={32} className="text-primary" />
-               <h3 className="text-2xl font-display font-bold text-white">2026: Semantic Mastery</h3>
+               <h3 className="text-2xl font-display font-bold text-foreground">2026: Semantic Mastery</h3>
                <p className="text-muted-foreground">Focusing on deep-copy synthesis and pixel-perfect visual alignment. We are currently finalizing the 0.4s latency inference layer and brand-locking algorithms.</p>
             </GlassCard>
 
             <GlassCard className="p-10 flex flex-col gap-6 roadmap-intro">
                <Cpu size={32} className="text-secondary" />
-               <h3 className="text-2xl font-display font-bold text-white">2027: Predictive Intelligence</h3>
+               <h3 className="text-2xl font-display font-bold text-foreground">2027: Predictive Intelligence</h3>
                <p className="text-muted-foreground">Launching real-time audience feedback loops where the AI doesn't just generate content—it predicts virality and engagement based on live global data streams.</p>
             </GlassCard>
          </div>
@@ -173,12 +173,13 @@ export const Features = () => {
             Your brand data is your competitive advantage. GenMark's models are isolated and your proprietary data is never used to train global public models.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
-             <span className="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm font-medium">SOC 2 Type II</span>
-             <span className="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm font-medium">GDPR Compliant</span>
-             <span className="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm font-medium">End-to-End Encryption</span>
+             <span className="px-4 py-2 rounded-full border border-glass/10 bg-glass/5 text-sm font-medium">SOC 2 Type II</span>
+             <span className="px-4 py-2 rounded-full border border-glass/10 bg-glass/5 text-sm font-medium">GDPR Compliant</span>
+             <span className="px-4 py-2 rounded-full border border-glass/10 bg-glass/5 text-sm font-medium">End-to-End Encryption</span>
           </div>
         </GlassCard>
       </div>
     </div>
   );
 };
+

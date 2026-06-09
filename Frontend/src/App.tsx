@@ -18,11 +18,13 @@ import { Signup } from "@/pages/auth/Signup";
 import { Overview } from "@/pages/dashboard/Overview";
 import { TextToImage } from "@/pages/dashboard/TextToImage";
 import { TextToText } from "@/pages/dashboard/TextToText";
+import { ImageToText } from "@/pages/dashboard/ImageToText";
 import { History } from "@/pages/dashboard/History";
 import { Profile } from "@/pages/dashboard/Profile";
 import { BrandKit } from "@/pages/dashboard/BrandKit";
 import { Projects } from "@/pages/dashboard/Projects";
 import { Activity } from "@/pages/dashboard/Activity";
+import { Settings } from "@/pages/dashboard/Settings";
 import { WorkstationPlaceholder } from "@/pages/dashboard/WorkstationPlaceholder";
 
 // Docs Pages
@@ -52,14 +54,14 @@ function App() {
           <Route path="brand" element={<BrandKit />} />
           <Route path="image" element={<TextToImage />} />
           <Route path="text" element={<TextToText />} />
-          <Route path="video" element={<WorkstationPlaceholder title="Text to Video" description="Coming Soon: Neural Motion Synthesis" />} />
-          <Route path="vision" element={<WorkstationPlaceholder title="Image to Video" description="Coming Soon: Move your static neural maps into cinematic fluid motion." />} />
-          <Route path="campaigns" element={<WorkstationPlaceholder title="Image to Text" description="Reverse neural mapping for deep metadata extraction, SEO analysis, and brand audits." />} />
+          <Route path="video" element={<WorkstationPlaceholder title="Text to Video" description="Coming Soon: Generative Motion Synthesis" />} />
+          <Route path="vision" element={<WorkstationPlaceholder title="Image to Video" description="Coming Soon: Move your static generative maps into cinematic fluid motion." />} />
+          <Route path="campaigns" element={<ImageToText />} />
           <Route path="activity" element={<Activity />} />
           <Route path="history" element={<History />} />
           <Route path="profile" element={<Profile />} />
-          <Route path="settings" element={<WorkstationPlaceholder title="Engine Configuration" description="Direct neural parameter access and API key rotation are restricted to enterprise admins during alpha." />} />
-          <Route path="support" element={<WorkstationPlaceholder title="Neural Support" description="Our support agents are currently training on your specific brand alignment metrics." />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="support" element={<WorkstationPlaceholder title="Generative Support" description="Our support agents are currently training on your specific brand alignment metrics." />} />
         </Route>
       </Route>
 
@@ -72,3 +74,4 @@ function App() {
 }
 
 export default App;
+

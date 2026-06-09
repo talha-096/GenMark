@@ -51,9 +51,9 @@ const Enterprise = () => {
              <p className="text-lg text-muted-foreground">GenMark's architecture ensures total brand isolation and enterprise-grade data handling. Our SOC 2 Type II compliance guarantees your data never touches public training datasets.</p>
           </div>
 
-          <div className="space-y-6 bg-surface/40 p-10 rounded-3xl border border-white/[0.05] backdrop-blur-3xl ent-card">
+          <div className="space-y-6 bg-surface/40 p-10 rounded-3xl border border-glass/[0.05] backdrop-blur-3xl ent-card">
             <AnimatedProgressBar label="SOC 2 Type II Compliance" percentage={100} />
-            <AnimatedProgressBar label="Neural Uptime SLA" percentage={99.99} className="text-secondary" />
+            <AnimatedProgressBar label="Generative Uptime SLA" percentage={99.99} className="text-secondary" />
             <AnimatedProgressBar label="Regional Encryption" percentage={98} className="text-accent" />
             <AnimatedProgressBar label="Team Security Score" percentage={96} />
           </div>
@@ -83,9 +83,9 @@ const Enterprise = () => {
                 Define distinct permissions for **Marketers**, **Designers**, and **Administrators** to control brand asset flow and API credit utilization across global teams.
               </p>
               <div className="flex gap-3">
-                 <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-mono uppercase tracking-widest text-primary">Marketers</span>
-                 <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-mono uppercase tracking-widest text-secondary">Designers</span>
-                 <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-mono uppercase tracking-widest text-accent">Admins</span>
+                 <span className="px-3 py-1 bg-glass/5 border border-glass/10 rounded-full text-xs font-mono uppercase tracking-widest text-primary">Marketers</span>
+                 <span className="px-3 py-1 bg-glass/5 border border-glass/10 rounded-full text-xs font-mono uppercase tracking-widest text-secondary">Designers</span>
+                 <span className="px-3 py-1 bg-glass/5 border border-glass/10 rounded-full text-xs font-mono uppercase tracking-widest text-accent">Admins</span>
               </div>
            </GlassCard>
 
@@ -103,3 +103,4 @@ const Enterprise = () => {
 };
 
 export default Enterprise;
+

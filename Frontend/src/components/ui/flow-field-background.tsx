@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
-interface NeuralBackgroundProps {
+interface GenerativeBackgroundProps {
   className?: string;
   color?: string;
   trailOpacity?: number;
@@ -10,16 +10,16 @@ interface NeuralBackgroundProps {
 }
 
 /**
- * NeuralBackground (Flow Field)
+ * GenerativeBackground (Flow Field)
  * Creates a fluid, organic particle system based on noise-like math.
  */
-export default function NeuralBackground({
+export default function GenerativeBackground({
   className,
   color = "#6366f1", // Indigo-500
   trailOpacity = 0.15,
   particleCount = 600,
   speed = 1,
-}: NeuralBackgroundProps) {
+}: GenerativeBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -166,3 +166,4 @@ export default function NeuralBackground({
     </div>
   );
 }
+

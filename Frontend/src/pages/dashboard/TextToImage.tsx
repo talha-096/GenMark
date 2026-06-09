@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import { useAuth } from "@/providers/AuthProvider";
+import { HistorySidebar, HistoryItem } from "@/components/shared/HistorySidebar";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { 
   Sparkles, 
@@ -30,6 +31,8 @@ interface BrandKitData {
 
 export const TextToImage = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -53,7 +56,7 @@ export const TextToImage = () => {
     setGeneratedImage(null);
     
     setLogs([
-        "[system] initializing neural core...", 
+        "[system] initializing generative core...", 
         "[auth] verifying enterprise token...",
         selectedBrand ? `[brand] locking font and palette: ${brands.find(b => b._id === selectedBrand)?.name}` : "[brand] using agnostic aesthetic"
     ]);
@@ -68,7 +71,7 @@ export const TextToImage = () => {
             content: string, 
             id: string,
             title: string 
-        }>('/api/generate/image', {
+        }>('/api/generate/text-to-image', {
             prompt,
             brand_kit_id: selectedBrand,
             aspect_ratio: aspectRatio
@@ -80,20 +83,21 @@ export const TextToImage = () => {
         if (response.success) {
             setGeneratedImage(response.content);
             setHistory(prevH => [response.content, ...prevH.slice(0, 3)]);
+            queryClient.invalidateQueries({ queryKey: ["generation-history", "image"] });
             setLogs(prevLogs => [
                 ...prevLogs, 
-                "[neural] latent space mapped.", 
+                "[generative] latent space mapped.", 
                 "[render] synthesis complete.", 
                 "[system] asset ready for uplink."
             ]);
             toast.success("Generation Complete", {
-                description: "Your neural asset has been synthesized successfully.",
+                description: "Your generative asset has been synthesized successfully.",
             });
         }
     } catch (error) {
-        setLogs(prevLogs => [...prevLogs, "[error] neural engine failure: connection reset."]);
+        setLogs(prevLogs => [...prevLogs, "[error] generative engine failure: connection reset."]);
         toast.error("Generation Failed", {
-            description: "The neural engine encountered an unexpected error."
+            description: "The generative engine encountered an unexpected error."
         });
     } finally {
         setIsGenerating(false);
@@ -101,7 +105,31 @@ export const TextToImage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 pb-20 animate-in fade-in duration-700">
+    <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8 pb-20 animate-in fade-in duration-700">
+      <HistorySidebar
+        type="image"
+        selectedId={selectedHistoryId}
+        onSelectItem={(item: HistoryItem) => {
+          setSelectedHistoryId(item.id);
+          setPrompt(item.prompt || "");
+          setSelectedBrand(item.brand_kit_id || null);
+          setGeneratedImage(item.content);
+          if (item.aspect_ratio) {
+            setAspectRatio(item.aspect_ratio);
+          }
+          setLogs(prev => [
+            ...prev,
+            `[system] restored image generation from archive: ID ${item.id}`,
+            `[system] restored prompt: "${item.prompt}"`,
+            `[system] aspect ratio restored: ${item.aspect_ratio || "default"}`,
+            `[system] brand alignment context restored.`
+          ]);
+          toast.info("Generation Restored", {
+            description: "Loaded previous generation parameters."
+          });
+        }}
+      />
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8">
       {/* Left Sidebar: Controls */}
       <div className="lg:col-span-4 space-y-6">
         <GlassCard className="p-8">
@@ -125,10 +153,10 @@ export const TextToImage = () => {
                         className={`p-3 rounded-xl border flex items-center gap-3 transition-all text-left ${
                             selectedBrand === null 
                             ? "bg-primary/10 border-primary/50 ring-1 ring-primary/20" 
-                            : "bg-white/5 border-white/10 hover:bg-white/10"
+                            : "bg-glass/5 border-glass/10 hover:bg-glass/10"
                         }`}
                       >
-                        <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-lg bg-glass/5 border border-glass/10 flex items-center justify-center">
                             <Palette size={16} className="text-muted-foreground" />
                         </div>
                         <div>
@@ -145,12 +173,12 @@ export const TextToImage = () => {
                             className={`p-3 rounded-xl border flex items-center gap-3 transition-all text-left ${
                                 selectedBrand === brand._id 
                                 ? "bg-primary/10 border-primary/50 ring-1 ring-primary/20" 
-                                : "bg-white/5 border-white/10 hover:bg-white/10"
+                                : "bg-glass/5 border-glass/10 hover:bg-glass/10"
                             }`}
                           >
                             <div className="w-8 h-8 rounded-lg flex items-center justify-center relative overflow-hidden" style={{ background: brand.colors && brand.colors.length > 0 ? (brand.colors.length > 1 ? `linear-gradient(135deg, ${brand.colors[0]}, ${brand.colors[1]})` : brand.colors[0]) : "#3b82f6" }}>
-                                <ShieldCheck size={16} className="text-white relative z-10" />
-                                <div className="absolute inset-0 bg-black/20" />
+                                <ShieldCheck size={16} className="text-foreground relative z-10" />
+                                <div className="absolute inset-0 bg-glass-inverse/20" />
                             </div>
                             <div>
                                 <div className="text-xs font-bold">{brand.name}</div>
@@ -162,15 +190,15 @@ export const TextToImage = () => {
                   </div>
               </div>
 
-              <div className="h-px bg-white/5" />
+              <div className="h-px bg-glass/5" />
 
               <div className="space-y-2">
-                 <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Neural Prompt</label>
+                 <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Generative Prompt</label>
                  <textarea 
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     placeholder="Describe your brand vision..."
-                    className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:ring-1 focus:ring-primary/50 transition-all resize-none"
+                    className="w-full h-32 bg-glass/5 border border-glass/10 rounded-2xl p-4 text-sm outline-none focus:ring-1 focus:ring-primary/50 transition-all resize-none"
                  />
               </div>
 
@@ -185,9 +213,9 @@ export const TextToImage = () => {
                            key={ratio} 
                            onClick={() => {
                               setAspectRatio(ratio);
-                              toast.info(`Aspect Ratio: ${ratio}`, { description: "Adjusting neural frame dimensions..." });
+                              toast.info(`Aspect Ratio: ${ratio}`, { description: "Adjusting generative frame dimensions..." });
                            }}
-                           className={`py-2 rounded-xl border text-xs font-mono transition-all ${ratio === aspectRatio ? "bg-primary/20 border-primary text-primary" : "bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10"}`}
+                           className={`py-2 rounded-xl border text-xs font-mono transition-all ${ratio === aspectRatio ? "bg-primary/20 border-primary text-primary" : "bg-glass/5 border-glass/10 text-muted-foreground hover:bg-glass/10"}`}
                         >
                            {ratio}
                         </button>
@@ -211,8 +239,8 @@ export const TextToImage = () => {
         </GlassCard>
 
         {/* Logs Console */}
-        <GlassCard className="p-6 bg-black/60 border-white/5 font-mono text-[10px]">
-           <div className="flex items-center gap-2 mb-4 text-muted-foreground pb-2 border-b border-white/5">
+        <GlassCard className="p-6 bg-glass-inverse/60 border-glass/5 font-mono text-[10px]">
+           <div className="flex items-center gap-2 mb-4 text-muted-foreground pb-2 border-b border-glass/5">
               <Terminal size={12} />
               <span className="uppercase tracking-[0.2em]">Live Engine Logs</span>
            </div>
@@ -231,7 +259,7 @@ export const TextToImage = () => {
 
       {/* Main Preview Area */}
       <div className="lg:col-span-8 space-y-6">
-        <GlassCard className="h-[600px] relative overflow-hidden flex items-center justify-center group shadow-glow-xl border-white/5">
+        <GlassCard className="h-[600px] relative overflow-hidden flex items-center justify-center group shadow-glow-xl border-glass/5">
            {/* Grid Background */}
            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.02)_0%,transparent_70%)] pointer-events-none" />
            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
@@ -251,7 +279,7 @@ export const TextToImage = () => {
                        <span>Synthesis Progress</span>
                        <span className="text-primary">{progress}%</span>
                     </div>
-                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden p-[2px]">
+                    <div className="h-1.5 w-full bg-glass/5 rounded-full overflow-hidden p-[2px]">
                        <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
                     </div>
                     <p className="text-center text-[10px] text-muted-foreground italic tracking-widest">Maintaining brand consistency parameters...</p>
@@ -260,30 +288,30 @@ export const TextToImage = () => {
            ) : generatedImage ? (
               <div className="w-full h-full relative group/img animate-in fade-in zoom-in duration-1000">
                  <img src={generatedImage} alt="Generated" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center gap-4 backdrop-blur-sm">
+                  <div className="absolute inset-0 bg-glass-inverse/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center gap-4 backdrop-blur-sm">
                      <button 
                         onClick={() => toast.success("Downloading", { description: "High-fidelity PNG is being prepared..." })}
-                        className="p-4 rounded-full bg-white/10 border border-white/20 hover:bg-primary hover:text-primary-foreground transition-all"
+                        className="p-4 rounded-full bg-glass/10 border border-glass/20 hover:bg-primary hover:text-primary-foreground transition-all"
                      >
                         <Download size={24} />
                      </button>
                      <button 
                         onClick={() => toast.info("Link Copied", { description: "Generation link shared to clipboard." })}
-                        className="p-4 rounded-full bg-white/10 border border-white/20 hover:bg-primary hover:text-primary-foreground transition-all"
+                        className="p-4 rounded-full bg-glass/10 border border-glass/20 hover:bg-primary hover:text-primary-foreground transition-all"
                      >
                         <Share2 size={24} />
                      </button>
                      <button 
                         onClick={() => toast.success("Fullscreen", { description: "Epic vision mode enabled." })}
-                        className="p-4 rounded-full bg-white/10 border border-white/20 hover:bg-primary hover:text-primary-foreground transition-all"
+                        className="p-4 rounded-full bg-glass/10 border border-glass/20 hover:bg-primary hover:text-primary-foreground transition-all"
                      >
                         <Maximize2 size={24} />
                      </button>
                   </div>
-                 <div className="absolute bottom-6 left-6 right-6 p-4 rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10 flex justify-between items-center opacity-0 translate-y-4 group-hover/img:opacity-100 group-hover/img:translate-y-0 transition-all">
+                 <div className="absolute bottom-6 left-6 right-6 p-4 rounded-2xl bg-glass-inverse/60 backdrop-blur-xl border border-glass/10 flex justify-between items-center opacity-0 translate-y-4 group-hover/img:opacity-100 group-hover/img:translate-y-0 transition-all">
                     <div>
                        <div className="text-xs font-bold mb-1">Brand Visual Synthesis #1402</div>
-                       <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Neural Seed: 84920211 • 1024x1024</div>
+                       <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Generative Seed: 84920211 • 1024x1024</div>
                     </div>
                     <div className="px-3 py-1 bg-green-500/10 text-green-500 rounded-full text-[10px] font-mono font-bold flex items-center gap-2">
                        <CheckCircle2 size={12} /> BRAND SAFE
@@ -292,7 +320,7 @@ export const TextToImage = () => {
               </div>
            ) : (
               <div className="flex flex-col items-center gap-6 text-muted-foreground/40 group">
-                 <div className="p-8 rounded-full bg-white/5 border border-white/5 group-hover:scale-110 transition-transform duration-500">
+                 <div className="p-8 rounded-full bg-glass/5 border border-glass/5 group-hover:scale-110 transition-transform duration-500">
                     <ImageIcon size={64} className="opacity-20 translate-y-[-10px] group-hover:translate-y-0 transition-transform" />
                  </div>
                  <div className="text-center">
@@ -310,11 +338,11 @@ export const TextToImage = () => {
                   key={idx} 
                   onClick={() => {
                      if (history[idx-1]) setGeneratedImage(history[idx-1]);
-                     toast.info(`Variant #${idx}`, { description: "Restoring neural state from history..." });
+                     toast.info(`Variant #${idx}`, { description: "Restoring generative state from history..." });
                    }}
-                  className="aspect-square p-0 overflow-hidden group cursor-pointer border-white/5 hover:border-primary/40 transition-all"
+                  className="aspect-square p-0 overflow-hidden group cursor-pointer border-glass/5 hover:border-primary/40 transition-all"
                >
-                  <div className="h-full w-full bg-white/5 flex items-center justify-center relative">
+                  <div className="h-full w-full bg-glass/5 flex items-center justify-center relative">
                      {history[idx-1] ? (
                         <img src={history[idx-1]} alt={`Variant ${idx}`} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
                      ) : (
@@ -328,6 +356,8 @@ export const TextToImage = () => {
             ))}
          </div>
       </div>
+      </div>
     </div>
   );
 };
+

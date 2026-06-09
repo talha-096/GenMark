@@ -57,10 +57,12 @@ def generate_text_to_image():
         return jsonify({"message": "Prompt is required"}), 400
     
     brand_kit = _get_brand_kit(data.get("brand_kit_id"))
+    aspect_ratio = data.get("aspect_ratio", "1:1")
     
     result = llm_service.generate_text_to_image(
         prompt=data["prompt"],
-        brand_kit=brand_kit
+        brand_kit=brand_kit,
+        aspect_ratio=aspect_ratio
     )
     
     if "error" in result:
@@ -73,7 +75,8 @@ def generate_text_to_image():
         content=result.get("image_url", ""),
         content_type="image",
         brand_kit_id=data.get("brand_kit_id"),
-        prompt=data["prompt"]
+        prompt=data["prompt"],
+        aspect_ratio=aspect_ratio
     )
     
     return jsonify({
@@ -85,6 +88,49 @@ def generate_text_to_image():
         "brand_applied": result.get("brand_applied", False),
         "enhanced_prompt": result.get("enhanced_prompt")
     }), 200
+
+
+
+@generation_bp.route("/upload-image", methods=["POST"])
+@jwt_required()
+def upload_image():
+    """Upload an image to S3 for image-to-text analysis"""
+    import os
+    from services.s3_service import S3Service
+    
+    if "image" not in request.files:
+        return jsonify({"message": "No image file provided"}), 400
+        
+    file = request.files["image"]
+    if file.filename == "":
+        return jsonify({"message": "No file selected"}), 400
+        
+    # Validate extension
+    allowed_extensions = {".png", ".jpg", ".jpeg", ".webp"}
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in allowed_extensions:
+        return jsonify({"message": f"Unsupported file type. Allowed: {', '.join(allowed_extensions)}"}), 400
+
+    # Upload to S3
+    s3 = S3Service()
+    timestamp = int(datetime.utcnow().timestamp())
+    # Clean filename to avoid issues
+    clean_name = "".join(c for c in file.filename if c.isalnum() or c in "._-").strip()
+    s3_path = f"uploads/img_{timestamp}_{clean_name}"
+    
+    success = s3.upload_file(file.read(), s3_path, content_type=file.content_type)
+    
+    if not success:
+        return jsonify({"message": "Failed to upload to S3"}), 500
+        
+    image_url = s3.get_presigned_url(s3_path)
+    
+    return jsonify({
+        "message": "Image uploaded successfully",
+        "image_url": image_url,
+        "s3_path": s3_path
+    }), 200
+
 
 
 @generation_bp.route("/image-to-text", methods=["POST"])
@@ -115,7 +161,9 @@ def generate_image_to_text():
         content=result["content"],
         content_type="image_analysis",
         brand_kit_id=data.get("brand_kit_id"),
-        prompt=data["prompt"]
+        prompt=data["prompt"],
+        image_url=data["image_url"],
+        selected_task=data.get("selected_task")
     )
     
     return jsonify({
@@ -193,7 +241,11 @@ def get_generation_history():
         "type": c.get("type"),
         "prompt": c.get("prompt"),
         "created_at": str(c.get("created_at")),
-        "brand_kit_id": str(c["brand_kit_id"]) if c.get("brand_kit_id") else None
+        "brand_kit_id": str(c["brand_kit_id"]) if c.get("brand_kit_id") else None,
+        "image_url": c.get("image_url"),
+        "aspect_ratio": c.get("aspect_ratio"),
+        "marketing_copy": c.get("marketing_copy"),
+        "selected_task": c.get("selected_task")
     } for c in contents]), 200
 
 

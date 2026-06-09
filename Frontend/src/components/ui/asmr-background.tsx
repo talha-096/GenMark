@@ -122,7 +122,7 @@ const ASMRStaticBackground: React.FC = () => {
 
     const render = () => {
       // CLEAR the canvas instead of filling with opaque black
-      // This allows the Neural background underneath to be visible
+      // This allows the Generative background underneath to be visible
       ctx.clearRect(0, 0, width, height);
 
       for (const p of particles) {
@@ -170,3 +170,4 @@ const ASMRStaticBackground: React.FC = () => {
 };
 
 export default ASMRStaticBackground;
+

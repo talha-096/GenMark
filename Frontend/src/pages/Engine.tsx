@@ -15,7 +15,7 @@ import { GradientText } from "@/components/shared/GradientText";
 const CAPABILITIES = [
   {
     icon: Sparkles,
-    title: "Neural Copy Engine",
+    title: "Generative Copy Engine",
     description: "Create compelling marketing copy instantly, tuned perfectly to your brand voice parameters using GenMark's proprietary LLM fine-tuning.",
     tags: ['Marketing Emails', 'Blog Posts', 'Social Captions', 'Ad Headlines'],
     variant: "featured" as const
@@ -30,7 +30,7 @@ const CAPABILITIES = [
   {
     icon: Video,
     title: "Image to Video",
-    description: "Neural motion synthesis for high-fidelity video generation from static imagery. Move your static maps into cinematic fluid motion.",
+    description: "Generative motion synthesis for high-fidelity video generation from static imagery. Move your static maps into cinematic fluid motion.",
     tags: ['Cinematic Ads', 'Motion Logos', 'Social Stories'],
     status: "Coming Soon",
     variant: "default" as const
@@ -68,7 +68,7 @@ const Engine = () => {
       <div className="text-center mb-24">
         <div className="font-mono text-sm tracking-widest text-primary mb-3">TECHNOLOGY STACK</div>
         <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-bold mb-6">
-          The <GradientText>Neural Core</GradientText>
+          The <GradientText>Generative Core</GradientText>
         </h1>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
           GenMark's engine is built on a proprietary multi-modal architecture that bridges the gap between semantic understanding and visual expression.
@@ -79,12 +79,12 @@ const Engine = () => {
         {CAPABILITIES.map((cap, i) => (
           <GlassCard key={i} variant={cap.variant} className="p-10 engine-card group relative">
             {cap.status && (
-              <div className="absolute top-6 right-6 px-3 py-1 rounded bg-white/10 text-[10px] font-mono font-bold tracking-widest uppercase border border-white/5">
+              <div className="absolute top-6 right-6 px-3 py-1 rounded bg-glass/10 text-[10px] font-mono font-bold tracking-widest uppercase border border-glass/5">
                 {cap.status}
               </div>
             )}
             <div className="flex items-start gap-6 mb-8">
-              <div className="p-4 rounded-xl bg-white/5 text-foreground group-hover:scale-110 transition-transform">
+              <div className="p-4 rounded-xl bg-glass/5 text-foreground group-hover:scale-110 transition-transform">
                 <cap.icon size={32} />
               </div>
               <div>
@@ -92,9 +92,9 @@ const Engine = () => {
                 <p className="text-muted-foreground leading-relaxed">{cap.description}</p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2 pt-6 border-t border-white/10">
+            <div className="flex flex-wrap gap-2 pt-6 border-t border-glass/10">
               {cap.tags.map(tag => (
-                <span key={tag} className="text-xs font-mono bg-white/5 px-3 py-1.5 rounded-full text-foreground/70">{tag}</span>
+                <span key={tag} className="text-xs font-mono bg-glass/5 px-3 py-1.5 rounded-full text-foreground/70">{tag}</span>
               ))}
             </div>
           </GlassCard>
@@ -105,7 +105,7 @@ const Engine = () => {
         {[
           { icon: Cpu, title: "0.4s Latency", desc: "Optimized inference layer for real-time creative feedback." },
           { icon: Zap, title: "100% Brand Lock", desc: "Mandatory architectural constraints ensure every output reflects your brand." },
-          { icon: Bot, title: "Autonomous Refine", desc: "Self-correcting neural loops for ultra-high-fidelity generation." }
+          { icon: Bot, title: "Autonomous Refine", desc: "Self-correcting generative loops for ultra-high-fidelity generation." }
         ].map((stat, i) => (
           <GlassCard key={i} className="p-8 text-center flex flex-col items-center engine-card">
             <div className="p-3 rounded-full bg-primary/10 text-primary mb-4">
@@ -121,3 +121,4 @@ const Engine = () => {
 };
 
 export default Engine;
+

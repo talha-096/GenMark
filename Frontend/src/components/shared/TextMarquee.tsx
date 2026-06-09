@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 const MARQUEE_ITEMS = [
   "GenMark",
-  "Neural Copy Engine",
+  "Generative Copy Engine",
   "Visual Synthesis Suite",
   "GenMark",
   "Semantic Vision Analyst",
@@ -20,7 +20,7 @@ export const TextMarquee = React.memo(({ className }: { className?: string }) =>
   return (
     <div
       className={cn(
-        "w-full overflow-hidden flex bg-surface-raised border-y border-white/[0.05] py-3",
+        "w-full overflow-hidden flex bg-surface-raised border-y border-glass/[0.05] py-3",
         className
       )}
     >
@@ -30,8 +30,13 @@ export const TextMarquee = React.memo(({ className }: { className?: string }) =>
           <div key={groupIndex} className="flex items-center shrink-0">
             {MARQUEE_ITEMS.map((item, i) => (
               <React.Fragment key={i}>
-                <span className="text-sm font-mono text-muted-foreground uppercase tracking-widest px-8">
-                  {item}
+                <span className="flex items-center gap-3 text-sm font-mono text-muted-foreground uppercase tracking-widest px-8">
+                  {item === "GenMark" && (
+                    <img src="/logo.png" alt="Logo" className="w-5 h-5 rounded-md shadow-glow-sm" />
+                  )}
+                  <span className={item === "GenMark" ? "text-foreground font-bold" : ""}>
+                    {item}
+                  </span>
                 </span>
                 <span className="text-primary/40">•</span>
               </React.Fragment>
@@ -43,3 +48,4 @@ export const TextMarquee = React.memo(({ className }: { className?: string }) =>
   );
 });
 TextMarquee.displayName = "TextMarquee";
+
