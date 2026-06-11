@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { GradientText } from "@/components/shared/GradientText";
-import { Activity, Twitter, Github, Linkedin, Mail, ArrowUpRight } from "lucide-react";
+import { Twitter, Github, Linkedin, Mail, ArrowUpRight } from "lucide-react";
 
 const PRODUCT_LINKS = [
   { label: "Features",   path: "/features" },
