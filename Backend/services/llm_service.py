@@ -351,46 +351,157 @@ class LLMService:
         return self._mock_image_analysis(image_url, prompt, brand_kit)
     
     def _build_brand_context(self, brand_kit, content_type="text"):
-        """Build system prompt with brand guidelines"""
+        """Build system prompt with strict brand-kit-based context enforcement.
+        
+        The model is instructed to ONLY generate content that is rooted in the
+        provided brand kit. If no brand_kit is supplied, a neutral professional
+        voice is used.  When a brand_kit IS supplied every field (colors, fonts,
+        guidelines, logo, tone) gates the output so that the generated content
+        is always on-brand.
+        """
         if not brand_kit:
-            return f"You are a professional marketing content creator. Create engaging, professional {content_type} content."
-        
-        context = f"""You are a professional marketing content creator for: {brand_kit.get('name', 'the brand')}.
+            return (
+                f"You are a professional marketing content creator. "
+                f"Create engaging, professional {content_type} content. "
+                f"Use a clean, universal brand voice with no specific brand identity applied."
+            )
 
-BRAND IDENTITY:
+        brand_name = brand_kit.get("name", "the brand")
+
+        # ── Color palette ─────────────────────────────────────────────────────
+        colors = brand_kit.get("colors", [])
+        if colors:
+            color_list = ", ".join(colors)
+            color_instruction = (
+                f"Brand Color Palette: {color_list}. "
+                f"All references to color, mood, atmosphere, or visual style MUST reflect this palette. "
+                f"DO NOT use or imply colors outside this palette unless they are universally neutral (white, black)."
+            )
+        else:
+            color_instruction = "No specific color palette defined. Use neutral, professional color references."
+
+        # ── Typography ────────────────────────────────────────────────────────
+        fonts = brand_kit.get("fonts", [])
+        if fonts:
+            font_list = ", ".join(fonts)
+            font_instruction = (
+                f"Brand Typography: {font_list}. "
+                f"When describing design or layout, reference these typefaces exclusively."
+            )
+        else:
+            font_instruction = "No typography defined. Use clean, professional font references."
+
+        # ── Brand guidelines / voice ──────────────────────────────────────────
+        guidelines = brand_kit.get("guidelines", "").strip()
+        if guidelines:
+            guidelines_block = (
+                f"BRAND VOICE & GUIDELINES (MUST be followed verbatim):\n"
+                f"{guidelines}\n"
+            )
+        else:
+            guidelines_block = (
+                "No explicit brand voice guidelines provided. "
+                "Default to a professional, trustworthy, and engaging tone that aligns with the brand name and colors.\n"
+            )
+
+        # ── Logo presence ─────────────────────────────────────────────────────
+        logo_url = brand_kit.get("logo_url")
+        logo_note = (
+            "The brand has an official logo. Any copy referencing visuals should acknowledge the logo as the primary brand mark."
+            if logo_url else
+            "No logo provided. Do not reference a logo in the content."
+        )
+
+        # ── Assemble system prompt ─────────────────────────────────────────────
+        context = f"""You are an expert, brand-locked marketing content creator working EXCLUSIVELY for the brand: **{brand_name}**.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ MANDATORY BRAND RULES — VIOLATION IS NOT ALLOWED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. IDENTITY LOCK: Every word you write must represent **{brand_name}** and nobody else.
+2. COLOR LOCK: {color_instruction}
+3. TYPOGRAPHY LOCK: {font_instruction}
+4. VOICE LOCK: {guidelines_block}
+5. LOGO RULE: {logo_note}
+6. NO INVENTION: Never invent brand attributes, slogans, or facts not present in these guidelines.
+7. NO CONTRADICTION: Never produce content that contradicts the brand palette, tone, or guidelines above.
+8. OUTPUT FORMAT: Produce only the final {content_type} content — no preamble, no disclaimers, no meta-commentary about the brand rules.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ YOUR TASK: Generate {content_type.upper()} content for {brand_name}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The content you produce must:
+- Breathe the **{brand_name}** identity in every sentence.
+- Use the brand color palette to inform mood, tone, and any visual descriptions.
+- Follow the brand voice guidelines strictly.
+- Be immediately recognizable as a **{brand_name}** asset.
+- Include a compelling call-to-action where appropriate for {content_type}.
 """
-        
-        if brand_kit.get('colors'):
-            colors_text = ", ".join(brand_kit['colors'])
-            context += f"- Brand Colors: {colors_text}\n"
-        
-        if brand_kit.get('fonts'):
-            fonts_text = ", ".join(brand_kit['fonts'])
-            context += f"- Typography: {fonts_text}\n"
-        
-        if brand_kit.get('guidelines'):
-            context += f"\nBRAND GUIDELINES:\n{brand_kit['guidelines']}\n"
-        
-        context += f"""
-TASK: Create {content_type} content that:
-- Aligns with the brand identity above
-- Uses the brand's voice and tone
-- References brand colors when relevant
-- Maintains professional quality
-- Stays true to brand guidelines
-"""
-        
         return context
+
+    def _format_brand_colors(self, colors):
+        """Return a human-readable color description for image prompts."""
+        if not colors:
+            return ""
+        if len(colors) == 1:
+            return f"dominant color {colors[0]}"
+        primary = colors[0]
+        accents = ", ".join(colors[1:])
+        return f"primary color {primary} with accent tones of {accents}"
     
     def _enhance_image_prompt(self, prompt, brand_kit):
-        """Enhance image generation prompt with brand colors"""
-        if not brand_kit or not brand_kit.get('colors'):
+        """Enhance image generation prompt with strict brand visual identity constraints.
+        
+        Builds a richly-structured prompt that tells the diffusion model to:
+        - Use the brand's exact color palette as the dominant visual tones.
+        - Reflect the brand's typographic style (when applicable).
+        - Stay within the brand's visual guidelines.
+        - Keep the original creative subject as the central focus.
+        """
+        if not brand_kit:
             return prompt
-        
-        colors = brand_kit.get('colors', [])
-        color_instruction = f"Use a color palette of {', '.join(colors[:3])}. "
-        
-        return f"{color_instruction}{prompt}"
+
+        brand_name = brand_kit.get("name", "the brand")
+        colors = brand_kit.get("colors", [])
+        fonts = brand_kit.get("fonts", [])
+        guidelines = brand_kit.get("guidelines", "").strip()
+
+        # ── Color block ────────────────────────────────────────────────────────
+        if colors:
+            color_desc = self._format_brand_colors(colors)
+            color_block = (
+                f"Color palette strictly restricted to {brand_name}'s brand colors: {', '.join(colors)}. "
+                f"The {color_desc} must dominate the composition. "
+                f"No off-brand colors permitted."
+            )
+        else:
+            color_block = ""
+
+        # ── Font/style block ───────────────────────────────────────────────────
+        if fonts:
+            font_block = f"Typography style inspired by {', '.join(fonts)}. "
+        else:
+            font_block = ""
+
+        # ── Guidelines block ───────────────────────────────────────────────────
+        if guidelines:
+            # Truncate to avoid token overrun in diffusion models
+            short_guidelines = guidelines[:300].strip()
+            guidelines_block = f"Visual brand guidelines: {short_guidelines}. "
+        else:
+            guidelines_block = ""
+
+        # ── Assemble final enhanced prompt ─────────────────────────────────────
+        brand_prefix = (
+            f"Brand visual identity for {brand_name}. "
+            f"{color_block} "
+            f"{font_block}"
+            f"{guidelines_block}"
+            f"Highly professional, premium quality, brand-consistent marketing visual. "
+        ).strip()
+
+        return f"{brand_prefix} Subject: {prompt}"
+
     
     # Mock responses for demo mode
     def _mock_text_generation(self, prompt, brand_kit, content_type):

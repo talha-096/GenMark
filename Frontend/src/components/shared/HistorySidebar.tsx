@@ -180,7 +180,13 @@ export const HistorySidebar = ({ type, onSelectItem, selectedId }: HistorySideba
                   )}
                 >
                   <div className="mt-0.5 shrink-0">
-                    {getIcon()}
+                    {item.image_url ? (
+                      <div className="w-8 h-8 rounded border border-glass/10 overflow-hidden bg-glass-inverse/20 flex items-center justify-center shrink-0">
+                        <img src={item.image_url} alt="thumbnail" className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      getIcon()
+                    )}
                   </div>
 
                   {isOpen && (

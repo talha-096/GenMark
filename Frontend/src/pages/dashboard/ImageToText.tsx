@@ -51,7 +51,8 @@ export const ImageToText = () => {
   // Results
   const [generatedCaption, setGeneratedCaption] = useState<string | null>(null);
   const [generatedCopy, setGeneratedCopy] = useState<string | null>(null);
-  
+  const [appliedBrandKit, setAppliedBrandKit] = useState<{ id: string; name: string; colors: string[] } | null>(null);
+
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const { data: brands = [] } = useQuery({
     queryKey: ["brand-kits", user?.id],
@@ -214,13 +215,17 @@ export const ImageToText = () => {
           ? `${customPrompt}\n\nVisual Context: ${visionResponse.content}`
           : `Create a highly persuasive, brand-aligned marketing caption for an image described as: ${visionResponse.content}. Use a strong call to action.`;
 
-        const textResponse = await apiClient.post<{ content: string }>("/api/generate/text-to-text", {
+        const textResponse = await apiClient.post<{ 
+          content: string,
+          brand_kit?: { id: string; name: string; colors: string[] } | null
+        }>("/api/generate/text-to-text", {
           prompt: copywritingPrompt,
           brand_kit_id: selectedBrand,
           content_type: "social"
         });
 
         setGeneratedCopy(textResponse.content);
+        setAppliedBrandKit(textResponse.brand_kit ?? null);
         try {
           await apiClient.put(`/api/content/${visionResponse.id}`, {
             marketing_copy: textResponse.content
@@ -232,11 +237,16 @@ export const ImageToText = () => {
         setLogs(prev => [
           ...prev,
           "[stage 2] copywriting synthesis complete.",
+          textResponse.brand_kit 
+            ? `[brand] copy locked to: ${textResponse.brand_kit.name}`
+            : "[brand] neutral voice applied.",
           "[system] pipeline cycle complete. asset finalized."
         ]);
         
         toast.success("Marketing Copy Synced", {
-          description: "Dual-stage vision and copywriting pipeline has successfully executed."
+          description: textResponse.brand_kit
+            ? `Brand-locked copy for "${textResponse.brand_kit.name}" ready.`
+            : "Dual-stage vision and copywriting pipeline has successfully executed."
         });
       } else {
         setProgress(100);
@@ -548,9 +558,24 @@ export const ImageToText = () => {
                       {generatedCopy ? (
                         <>
                           <p className="whitespace-pre-wrap">{generatedCopy}</p>
-                          <div className="mt-8 pt-4 border-t border-glass/5 flex items-center justify-between opacity-60 text-[10px] font-mono">
-                            <span className="flex items-center gap-1"><Clock size={10} /> Sync: Realtime</span>
-                            <span className="flex items-center gap-1 text-green-400 font-bold"><ShieldCheck size={10} /> Brand Compliant</span>
+                          <div className="mt-8 pt-4 border-t border-glass/5 flex items-center justify-between">
+                            <span className="flex items-center gap-1 text-[10px] font-mono opacity-60"><Clock size={10} /> Sync: Realtime</span>
+                            {appliedBrandKit ? (
+                              <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-primary/10 border border-primary/20">
+                                <div
+                                  className="w-2.5 h-2.5 rounded-full"
+                                  style={{ background: appliedBrandKit.colors?.[0] ?? "#3b82f6" }}
+                                />
+                                <ShieldCheck size={10} className="text-primary" />
+                                <span className="text-[9px] font-mono font-bold text-primary uppercase tracking-wider">
+                                  {appliedBrandKit.name}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="flex items-center gap-1 text-[10px] font-mono text-green-400 font-bold opacity-60">
+                                <ShieldCheck size={10} /> Brand Compliant
+                              </span>
+                            )}
                           </div>
                         </>
                       ) : (

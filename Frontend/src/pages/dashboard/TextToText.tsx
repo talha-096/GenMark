@@ -37,11 +37,15 @@ export const TextToText = () => {
   const [logs, setLogs] = useState<string[]>([]);
   const [generatedContent, setGeneratedContent] = useState<string | null>(null);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
+  const [appliedBrandKit, setAppliedBrandKit] = useState<{ id: string; name: string; colors: string[] } | null>(null);
   const { data: brands = [] } = useQuery({
     queryKey: ["brand-kits", user?.id],
     queryFn: () => apiClient.get<BrandKitData[]>("/api/brand/"),
     enabled: !!user,
   });
+
+  // Derive the active brand object for UI display
+  const activeBrand = brands.find(b => b._id === selectedBrand) ?? null;
 
   // No auto-selection to allow Neutral as default
 
@@ -67,7 +71,8 @@ export const TextToText = () => {
         const response = await apiClient.post<{ 
             success: boolean, 
             content: string, 
-            id: string 
+            id: string,
+            brand_kit?: { id: string; name: string; colors: string[] } | null
         }>('/api/generate/text-to-text', {
             prompt,
             brand_kit_id: selectedBrand,
@@ -76,14 +81,20 @@ export const TextToText = () => {
 
         if (response.content) {
             setGeneratedContent(response.content);
+            setAppliedBrandKit(response.brand_kit ?? null);
             setLogs(prevLogs => [
                 ...prevLogs, 
                 "[generative] semantic mapping complete.", 
+                response.brand_kit 
+                  ? `[brand] content locked to: ${response.brand_kit.name}`
+                  : "[brand] neutral voice applied.",
                 "[engine] copy synthesized successfully."
             ]);
             queryClient.invalidateQueries({ queryKey: ["generation-history", "text"] });
             toast.success("Copy Generated", {
-                description: "Your brand-aligned copy is ready.",
+                description: response.brand_kit 
+                  ? `Brand-aligned copy for "${response.brand_kit.name}" is ready.`
+                  : "Your copy is ready.",
             });
         }
     } catch (error) {
@@ -194,12 +205,34 @@ export const TextToText = () => {
                   </div>
               </div>
 
+              {/* Active Brand Context Banner */}
+              {activeBrand && (
+                <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 flex items-center gap-3">
+                  <div
+                    className="w-8 h-8 rounded-lg flex-shrink-0"
+                    style={{ background: activeBrand.colors?.length > 1
+                      ? `linear-gradient(135deg, ${activeBrand.colors[0]}, ${activeBrand.colors[1]})`
+                      : activeBrand.colors?.[0] ?? "#3b82f6" }}
+                  />
+                  <div className="min-w-0">
+                    <div className="text-[10px] font-mono text-primary uppercase tracking-widest">Active Brand Context</div>
+                    <div className="text-xs font-bold truncate">{activeBrand.name}</div>
+                    <div className="flex gap-1 mt-1">
+                      {activeBrand.colors?.slice(0, 5).map((c, i) => (
+                        <div key={i} className="w-3 h-3 rounded-full border border-glass/20" style={{ background: c }} title={c} />
+                      ))}
+                    </div>
+                  </div>
+                  <ShieldCheck size={14} className="ml-auto text-primary flex-shrink-0" />
+                </div>
+              )}
+
               <div className="space-y-2">
                  <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Brief / Prompt</label>
                  <textarea 
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="Describe the promotion or message..."
+                    placeholder={activeBrand ? `Write in ${activeBrand.name}'s voice...` : "Describe the promotion or message..."}
                     className="w-full h-32 bg-glass/5 border border-glass/10 rounded-2xl p-4 text-sm outline-none focus:ring-1 focus:ring-primary/50 transition-all resize-none"
                  />
               </div>
@@ -253,13 +286,27 @@ export const TextToText = () => {
            {generatedContent ? (
               <div className="flex-1 whitespace-pre-wrap font-sans text-lg leading-relaxed text-foreground/90 animate-in fade-in slide-in-from-bottom-2 duration-700">
                  {generatedContent}
-                 <div className="mt-12 pt-8 border-t border-glass/5 flex items-center justify-between opacity-60">
-                    <div className="flex items-center gap-4 text-xs font-mono">
-                       <div className="flex items-center gap-1.5"><Clock size={12} /> Just now</div>
-                       <div className="flex items-center gap-1.5"><ShieldCheck size={12} /> Brand Aligned</div>
-                    </div>
-                    <div className="text-[10px] font-black tracking-widest uppercase">Version 1.0</div>
-                 </div>
+                  <div className="mt-12 pt-8 border-t border-glass/5 flex items-center justify-between">
+                     <div className="flex items-center gap-4 text-xs font-mono opacity-60">
+                        <div className="flex items-center gap-1.5"><Clock size={12} /> Just now</div>
+                     </div>
+                     {appliedBrandKit ? (
+                       <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+                         <div
+                           className="w-3 h-3 rounded-full"
+                           style={{ background: appliedBrandKit.colors?.[0] ?? "#3b82f6" }}
+                         />
+                         <ShieldCheck size={11} className="text-primary" />
+                         <span className="text-[10px] font-mono font-bold text-primary uppercase tracking-wider">
+                           {appliedBrandKit.name}
+                         </span>
+                       </div>
+                     ) : (
+                       <div className="flex items-center gap-1.5 text-xs font-mono opacity-40">
+                         <ShieldCheck size={12} /> Neutral Voice
+                       </div>
+                     )}
+                  </div>
               </div>
            ) : (
               <div className="flex-1 flex flex-col items-center justify-center gap-6 text-muted-foreground/40 italic">

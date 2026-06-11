@@ -12,18 +12,20 @@ class S3Service:
             self.access_key = current_app.config.get('AWS_ACCESS_KEY_ID')
             self.secret_key = current_app.config.get('AWS_SECRET_ACCESS_KEY')
             self.bucket_name = current_app.config.get('AWS_S3_BUCKET')
-            self.region = current_app.config.get('AWS_REGION')
+            self.region = current_app.config.get('AWS_S3_REGION')  # Fixed: was 'AWS_REGION'
         except (RuntimeError, ImportError):
             self.access_key = os.getenv('AWS_ACCESS_KEY_ID')
             self.secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
             self.bucket_name = os.getenv('S3_BUCKET_NAME')
-            self.region = os.getenv('AWS_REGION', 'us-east-1')
+            self.region = os.getenv('AWS_REGION', 'eu-north-1')
 
         # Robustness check: if current_app exists but config is missing, fallback to env
         if not self.access_key: self.access_key = os.getenv('AWS_ACCESS_KEY_ID')
         if not self.secret_key: self.secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
         if not self.bucket_name: self.bucket_name = os.getenv('S3_BUCKET_NAME')
-        if not self.region: self.region = os.getenv('AWS_REGION', 'us-east-1')
+        if not self.region: self.region = os.getenv('AWS_REGION', 'eu-north-1')
+        
+        logging.info(f"S3Service init: bucket={self.bucket_name}, region={self.region}, key_set={bool(self.access_key)}")
         
         # Initialize the S3 client
         self.s3_client = boto3.client(
@@ -43,6 +45,10 @@ class S3Service:
         :return: True if successful, None otherwise.
         """
         try:
+            if not self.bucket_name:
+                logging.error("S3 Upload Error: bucket_name is not set!")
+                return False
+
             extra_args = {}
             if content_type:
                 extra_args['ContentType'] = content_type
@@ -53,9 +59,14 @@ class S3Service:
                 Body=file_data,
                 **extra_args
             )
+            logging.info(f"S3 upload success: {object_name}")
             return True
         except ClientError as e:
-            logging.error(f"S3 Upload Error: {e}")
+            logging.error(f"S3 ClientError [{e.response['Error']['Code']}]: {e.response['Error']['Message']}")
+            return False
+        except Exception as e:
+            import traceback
+            logging.error(f"S3 Upload unexpected error: {type(e).__name__}: {e}\n{traceback.format_exc()}")
             return False
 
     def get_presigned_url(self, object_name, expiration=3600):
