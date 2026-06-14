@@ -5,8 +5,6 @@ import {
   Type, 
   ArrowUpRight,
   ArrowDownRight,
-  MousePointer2,
-  Smartphone,
   TrendingUp,
   Sparkles,
   Loader2
@@ -138,24 +136,6 @@ export const Overview = () => {
                       <div className="bg-primary/40 w-full rounded-t-sm transition-all group-hover:bg-primary/60" style={{ height: `${h * 0.4}%` }} />
                    </div>
                    <span className="text-[10px] text-muted-foreground font-mono">{i + 1}</span>
-                </div>
-              ))}
-           </div>
-           
-           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {[
-                { label: "Desktop", value: "62%", icon: Smartphone, color: "text-primary" },
-                { label: "Mobile", value: "28%", icon: Smartphone, color: "text-blue-400" },
-                { label: "API", value: "10%", icon: MousePointer2, color: "text-purple-400" },
-              ].map((plat, i) => (
-                <div key={i} className="p-4 rounded-xl bg-surface/30 border border-glass/5 flex items-center gap-3">
-                   <div className={`p-2 rounded-lg bg-glass/5 ${plat.color}`}>
-                      <plat.icon size={16} />
-                   </div>
-                   <div>
-                      <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{plat.label}</div>
-                      <div className="text-sm font-bold">{plat.value}</div>
-                   </div>
                 </div>
               ))}
            </div>
