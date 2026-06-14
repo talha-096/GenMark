@@ -18,18 +18,27 @@ import {
   RotateCcw, 
   Bold, 
   Italic, 
-  Move 
+  Move,
+  Layers
 } from 'lucide-react';
 
 interface ImageEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   imageUrl: string;
+  brandColors?: string[];
   onSave: (newImageUrl: string) => void;
 }
 
-export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose, imageUrl, onSave }) => {
+export const ImageEditModal: React.FC<ImageEditModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  imageUrl, 
+  brandColors = [], 
+  onSave 
+}) => {
   const [activeTab, setActiveTab] = useState<'crop' | 'ai' | 'text'>('crop');
+  const [activeLayer, setActiveLayer] = useState<'header' | 'subtitle'>('header');
   
   // Crop state
   const [crop, setCrop] = useState<Crop>();
@@ -40,20 +49,35 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
   const [aiPrompt, setAiPrompt] = useState('');
   const [isTransforming, setIsTransforming] = useState(false);
 
-  // Text Overlay state
-  const [textOverlay, setTextOverlay] = useState('SEASON SALE\n50% OFF');
-  const [textColor, setTextColor] = useState('#ffffff');
-  const [textSize, setTextSize] = useState(36);
-  const [textX, setTextX] = useState(50);
-  const [textY, setTextY] = useState(50);
-  const [textBgColor, setTextBgColor] = useState('rgba(0,0,0,0.4)');
-  const [fontFamily, setFontFamily] = useState('system-ui, sans-serif');
-  const [fontWeight, setFontWeight] = useState('bold');
-  const [isItalic, setIsItalic] = useState(false);
-  const [isUppercase, setIsUppercase] = useState(true);
-  const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('center');
+  // --- LAYER 1: HEADER STATE ---
+  const [headerText, setHeaderText] = useState('SEASON SALE');
+  const [headerColor, setHeaderColor] = useState('#ffffff');
+  const [headerSize, setHeaderSize] = useState(38);
+  const [headerX, setHeaderX] = useState(50);
+  const [headerY, setHeaderY] = useState(40);
+  const [headerBgColor, setHeaderBgColor] = useState('transparent');
+  const [headerFontFamily, setHeaderFontFamily] = useState('system-ui, sans-serif');
+  const [headerFontWeight, setHeaderFontWeight] = useState('bold');
+  const [headerItalic, setHeaderItalic] = useState(false);
+  const [headerUppercase, setHeaderUppercase] = useState(true);
+  const [headerAlign, setHeaderAlign] = useState<'left' | 'center' | 'right'>('center');
+  const [headerRotation, setHeaderRotation] = useState(0);
 
-  // Drag state for text overlay
+  // --- LAYER 2: SUBTITLE / CALL TO ACTION STATE ---
+  const [subtitleText, setSubtitleText] = useState('UP TO 50% OFF ALL ITEMS');
+  const [subtitleColor, setSubtitleColor] = useState('#facc15');
+  const [subtitleSize, setSubtitleSize] = useState(20);
+  const [subtitleX, setSubtitleX] = useState(50);
+  const [subtitleY, setSubtitleY] = useState(60);
+  const [subtitleBgColor, setSubtitleBgColor] = useState('rgba(0,0,0,0.5)');
+  const [subtitleFontFamily, setSubtitleFontFamily] = useState('system-ui, sans-serif');
+  const [subtitleFontWeight, setSubtitleFontWeight] = useState('normal');
+  const [subtitleItalic, setSubtitleItalic] = useState(false);
+  const [subtitleUppercase, setSubtitleUppercase] = useState(true);
+  const [subtitleAlign, setSubtitleAlign] = useState<'left' | 'center' | 'right'>('center');
+  const [subtitleRotation, setSubtitleRotation] = useState(0);
+
+  // Drag state for text overlays
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isHoveringText, setIsHoveringText] = useState(false);
@@ -63,6 +87,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
   const [contrast, setContrast] = useState(100);
   const [saturate, setSaturate] = useState(100);
   const [hueRotate, setHueRotate] = useState(0);
+  const [blur, setBlur] = useState(0);
 
   // Disable body scroll when open
   useEffect(() => {
@@ -79,15 +104,23 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
     setIsDragging(true);
   };
 
-  // Handle dragging logic
+  // Handle dragging logic relative to the active layer
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging || !containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width) * 100;
       const y = ((e.clientY - rect.top) / rect.height) * 100;
-      setTextX(Math.max(0, Math.min(100, Math.round(x))));
-      setTextY(Math.max(0, Math.min(100, Math.round(y))));
+      const clampedX = Math.max(0, Math.min(100, Math.round(x)));
+      const clampedY = Math.max(0, Math.min(100, Math.round(y)));
+
+      if (activeLayer === 'header') {
+        setHeaderX(clampedX);
+        setHeaderY(clampedY);
+      } else {
+        setSubtitleX(clampedX);
+        setSubtitleY(clampedY);
+      }
     };
 
     const handleMouseUp = () => {
@@ -103,7 +136,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging]);
+  }, [isDragging, activeLayer]);
 
   if (!isOpen) return null;
 
@@ -196,7 +229,8 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
     }
 
     // 1. Apply image filters
-    ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%) hue-rotate(${hueRotate}deg)`;
+    const scaleFactor = image.naturalWidth / image.width;
+    ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%) hue-rotate(${hueRotate}deg) blur(${blur * scaleFactor}px)`;
     
     // 2. Draw the image with filters
     ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
@@ -204,21 +238,41 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
     // Reset filters for text rendering
     ctx.filter = 'none';
 
-    // 3. Draw text overlay
-    const rawText = textOverlay.trim();
-    if (rawText) {
-      const displayText = isUppercase ? rawText.toUpperCase() : rawText;
-      const scaleFactor = image.naturalWidth / image.width;
-      const naturalFontSize = textSize * scaleFactor;
-      const italicPrefix = isItalic ? 'italic ' : '';
-      
-      ctx.font = `${italicPrefix}${fontWeight} ${naturalFontSize}px ${fontFamily}`;
-      ctx.fillStyle = textColor;
-      ctx.textAlign = textAlign;
-      ctx.textBaseline = 'middle';
+    // 3. Draw text overlays helper
+    const drawTextLayer = (
+      text: string,
+      x: number,
+      y: number,
+      size: number,
+      color: string,
+      bgColor: string,
+      font: string,
+      weight: string,
+      italic: boolean,
+      uppercase: boolean,
+      align: 'left' | 'center' | 'right',
+      rotation: number
+    ) => {
+      const rawText = text.trim();
+      if (!rawText) return;
 
-      const xPos = (textX / 100) * canvas.width;
-      const yPos = (textY / 100) * canvas.height;
+      const displayText = uppercase ? rawText.toUpperCase() : rawText;
+      const naturalFontSize = size * scaleFactor;
+      const italicPrefix = italic ? 'italic ' : '';
+
+      ctx.save();
+
+      const xPos = (x / 100) * canvas.width;
+      const yPos = (y / 100) * canvas.height;
+
+      // Position canvas context for rotation
+      ctx.translate(xPos, yPos);
+      ctx.rotate((rotation * Math.PI) / 180);
+
+      ctx.font = `${italicPrefix}${weight} ${naturalFontSize}px ${font}`;
+      ctx.fillStyle = color;
+      ctx.textAlign = align;
+      ctx.textBaseline = 'middle';
 
       const textLines = displayText.split('\n');
       let maxWidth = 0;
@@ -232,33 +286,67 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
       const lineHeight = naturalFontSize * 1.25;
       const bannerHeight = (lineHeight * textLines.length) + (paddingY * 2);
 
-      let startX = xPos;
-      if (textAlign === 'center') {
-        startX = xPos - maxWidth / 2;
-      } else if (textAlign === 'right') {
-        startX = xPos - maxWidth;
+      let startX = 0;
+      if (align === 'center') {
+        startX = -maxWidth / 2;
+      } else if (align === 'right') {
+        startX = -maxWidth;
       }
 
       // Draw background banner if set
-      if (textBgColor !== 'transparent') {
-        ctx.fillStyle = textBgColor;
+      if (bgColor !== 'transparent') {
+        ctx.fillStyle = bgColor;
         ctx.fillRect(
           startX - paddingX,
-          yPos - (lineHeight * textLines.length) / 2 - paddingY,
+          - (lineHeight * textLines.length) / 2 - paddingY,
           maxWidth + paddingX * 2,
           bannerHeight
         );
       }
 
       // Draw text lines
-      ctx.fillStyle = textColor;
+      ctx.fillStyle = color;
       const totalHeight = lineHeight * textLines.length;
-      const startY = yPos - (totalHeight / 2) + (lineHeight / 2);
+      const startY = - (totalHeight / 2) + (lineHeight / 2);
 
       textLines.forEach((line, index) => {
-        ctx.fillText(line, xPos, startY + (index * lineHeight));
+        ctx.fillText(line, 0, startY + (index * lineHeight));
       });
-    }
+
+      ctx.restore();
+    };
+
+    // Draw Header layer
+    drawTextLayer(
+      headerText,
+      headerX,
+      headerY,
+      headerSize,
+      headerColor,
+      headerBgColor,
+      headerFontFamily,
+      headerFontWeight,
+      headerItalic,
+      headerUppercase,
+      headerAlign,
+      headerRotation
+    );
+
+    // Draw Subtitle layer
+    drawTextLayer(
+      subtitleText,
+      subtitleX,
+      subtitleY,
+      subtitleSize,
+      subtitleColor,
+      subtitleBgColor,
+      subtitleFontFamily,
+      subtitleFontWeight,
+      subtitleItalic,
+      subtitleUppercase,
+      subtitleAlign,
+      subtitleRotation
+    );
 
     canvas.toBlob(async (blob) => {
       if (!blob) {
@@ -287,10 +375,31 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
     setContrast(100);
     setSaturate(100);
     setHueRotate(0);
+    setBlur(0);
     toast.success('Filters reset to default');
   };
 
-  const displayText = isUppercase ? textOverlay.toUpperCase() : textOverlay;
+  // Active layer settings mapped to dynamic components
+  const layerText = activeLayer === 'header' ? headerText : subtitleText;
+  const setLayerText = activeLayer === 'header' ? setHeaderText : setSubtitleText;
+  const layerColor = activeLayer === 'header' ? headerColor : subtitleColor;
+  const setLayerColor = activeLayer === 'header' ? setHeaderColor : setSubtitleColor;
+  const layerSize = activeLayer === 'header' ? headerSize : subtitleSize;
+  const setLayerSize = activeLayer === 'header' ? setHeaderSize : setSubtitleSize;
+  const layerBgColor = activeLayer === 'header' ? headerBgColor : subtitleBgColor;
+  const setLayerBgColor = activeLayer === 'header' ? setHeaderBgColor : setSubtitleBgColor;
+  const layerFontFamily = activeLayer === 'header' ? headerFontFamily : subtitleFontFamily;
+  const setLayerFontFamily = activeLayer === 'header' ? setHeaderFontFamily : setSubtitleFontFamily;
+  const layerFontWeight = activeLayer === 'header' ? headerFontWeight : subtitleFontWeight;
+  const setLayerFontWeight = activeLayer === 'header' ? setHeaderFontWeight : setSubtitleFontWeight;
+  const layerItalic = activeLayer === 'header' ? headerItalic : subtitleItalic;
+  const setLayerItalic = activeLayer === 'header' ? setHeaderItalic : setSubtitleItalic;
+  const layerUppercase = activeLayer === 'header' ? headerUppercase : subtitleUppercase;
+  const setLayerUppercase = activeLayer === 'header' ? setHeaderUppercase : setSubtitleUppercase;
+  const layerAlign = activeLayer === 'header' ? headerAlign : subtitleAlign;
+  const setLayerAlign = activeLayer === 'header' ? setHeaderAlign : setSubtitleAlign;
+  const layerRotation = activeLayer === 'header' ? headerRotation : subtitleRotation;
+  const setLayerRotation = activeLayer === 'header' ? setHeaderRotation : setSubtitleRotation;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in duration-300">
@@ -354,48 +463,100 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
                   className="max-h-[65vh] object-contain rounded-lg shadow-2xl"
                   crossOrigin="anonymous"
                   style={{
-                    filter: `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%) hue-rotate(${hueRotate}deg)`
+                    filter: `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%) hue-rotate(${hueRotate}deg) blur(${blur}px)`
                   }}
                 />
                 
                 {/* Drag Instructions overlay */}
                 <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] text-white/75 font-mono flex items-center gap-1.5 pointer-events-none">
-                  <Move size={10} /> Drag text directly on poster to position
+                  <Move size={10} /> Active: <span className="text-primary font-bold uppercase">{activeLayer}</span> (Drag on image to move)
                 </div>
 
-                <div 
-                  onMouseDown={handleMouseDown}
-                  onMouseEnter={() => setIsHoveringText(true)}
-                  onMouseLeave={() => setIsHoveringText(false)}
-                  className={`absolute select-none whitespace-pre-line cursor-move transition-shadow duration-200 ${isDragging ? 'shadow-xl' : ''}`}
-                  style={{
-                    left: `${textX}%`,
-                    top: `${textY}%`,
-                    transform: textAlign === 'center' 
-                      ? 'translate(-50%, -50%)' 
-                      : textAlign === 'left' 
-                        ? 'translate(0%, -50%)' 
-                        : 'translate(-100%, -50%)',
-                    textAlign: textAlign,
-                    color: textColor,
-                    fontSize: `${textSize}px`,
-                    fontFamily: fontFamily,
-                    fontWeight: fontWeight,
-                    fontStyle: isItalic ? 'italic' : 'normal',
-                    backgroundColor: textBgColor,
-                    padding: textBgColor !== 'transparent' ? '8px 20px' : '4px',
-                    borderRadius: '8px',
-                    lineHeight: '1.25',
-                    maxWidth: '85%',
-                    wordBreak: 'break-word',
-                    outline: isHoveringText || isDragging ? '2px dashed #3b82f6' : 'none',
-                    outlineOffset: '4px',
-                    boxShadow: textBgColor !== 'transparent' ? '0 8px 24px rgba(0,0,0,0.4)' : 'none',
-                    textShadow: textBgColor === 'transparent' ? '1px 1px 6px rgba(0,0,0,0.9)' : 'none'
-                  }}
-                >
-                  {displayText || 'Enter Text'}
-                </div>
+                {/* Layer 1: Header Preview */}
+                {headerText.trim() && (
+                  <div 
+                    onMouseDown={(e) => {
+                      setActiveLayer('header');
+                      handleMouseDown(e);
+                    }}
+                    onMouseEnter={() => setIsHoveringText(true)}
+                    onMouseLeave={() => setIsHoveringText(false)}
+                    className={`absolute select-none whitespace-pre-line cursor-move transition-all duration-200 ${
+                      activeLayer === 'header' ? 'ring-2 ring-primary ring-offset-2' : ''
+                    }`}
+                    style={{
+                      left: `${headerX}%`,
+                      top: `${headerY}%`,
+                      transform: headerAlign === 'center' 
+                        ? `translate(-50%, -50%) rotate(${headerRotation}deg)` 
+                        : headerAlign === 'left' 
+                          ? `translate(0%, -50%) rotate(${headerRotation}deg)` 
+                          : `translate(-100%, -50%) rotate(${headerRotation}deg)`,
+                      transformOrigin: headerAlign === 'center' ? 'center center' : headerAlign === 'left' ? 'left center' : 'right center',
+                      textAlign: headerAlign,
+                      color: headerColor,
+                      fontSize: `${headerSize}px`,
+                      fontFamily: headerFontFamily,
+                      fontWeight: headerFontWeight,
+                      fontStyle: headerItalic ? 'italic' : 'normal',
+                      backgroundColor: headerBgColor,
+                      padding: headerBgColor !== 'transparent' ? '8px 20px' : '4px',
+                      borderRadius: '8px',
+                      lineHeight: '1.25',
+                      maxWidth: '85%',
+                      wordBreak: 'break-word',
+                      outline: activeLayer === 'header' ? '1px dashed #3b82f6' : (isHoveringText ? '1px dashed #3b82f6' : 'none'),
+                      outlineOffset: '4px',
+                      boxShadow: headerBgColor !== 'transparent' ? '0 8px 24px rgba(0,0,0,0.4)' : 'none',
+                      textShadow: headerBgColor === 'transparent' ? '1px 1px 6px rgba(0,0,0,0.9)' : 'none'
+                    }}
+                  >
+                    {headerUppercase ? headerText.toUpperCase() : headerText}
+                  </div>
+                )}
+
+                {/* Layer 2: Subtitle Preview */}
+                {subtitleText.trim() && (
+                  <div 
+                    onMouseDown={(e) => {
+                      setActiveLayer('subtitle');
+                      handleMouseDown(e);
+                    }}
+                    onMouseEnter={() => setIsHoveringText(true)}
+                    onMouseLeave={() => setIsHoveringText(false)}
+                    className={`absolute select-none whitespace-pre-line cursor-move transition-all duration-200 ${
+                      activeLayer === 'subtitle' ? 'ring-2 ring-primary ring-offset-2' : ''
+                    }`}
+                    style={{
+                      left: `${subtitleX}%`,
+                      top: `${subtitleY}%`,
+                      transform: subtitleAlign === 'center' 
+                        ? `translate(-50%, -50%) rotate(${subtitleRotation}deg)` 
+                        : subtitleAlign === 'left' 
+                          ? `translate(0%, -50%) rotate(${subtitleRotation}deg)` 
+                          : `translate(-100%, -50%) rotate(${subtitleRotation}deg)`,
+                      transformOrigin: subtitleAlign === 'center' ? 'center center' : subtitleAlign === 'left' ? 'left center' : 'right center',
+                      textAlign: subtitleAlign,
+                      color: subtitleColor,
+                      fontSize: `${subtitleSize}px`,
+                      fontFamily: subtitleFontFamily,
+                      fontWeight: subtitleFontWeight,
+                      fontStyle: subtitleItalic ? 'italic' : 'normal',
+                      backgroundColor: subtitleBgColor,
+                      padding: subtitleBgColor !== 'transparent' ? '8px 20px' : '4px',
+                      borderRadius: '8px',
+                      lineHeight: '1.25',
+                      maxWidth: '85%',
+                      wordBreak: 'break-word',
+                      outline: activeLayer === 'subtitle' ? '1px dashed #3b82f6' : (isHoveringText ? '1px dashed #3b82f6' : 'none'),
+                      outlineOffset: '4px',
+                      boxShadow: subtitleBgColor !== 'transparent' ? '0 8px 24px rgba(0,0,0,0.4)' : 'none',
+                      textShadow: subtitleBgColor === 'transparent' ? '1px 1px 6px rgba(0,0,0,0.9)' : 'none'
+                    }}
+                  >
+                    {subtitleUppercase ? subtitleText.toUpperCase() : subtitleText}
+                  </div>
+                )}
               </div>
             )}
 
@@ -425,165 +586,195 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
             {activeTab === 'text' && (
               <div className="space-y-6">
                 <div>
-                  <h4 className="font-bold mb-1 text-primary">Professional Typography</h4>
-                  <p className="text-[11px] text-muted-foreground">Design premium visual copy overlays for your campaigns.</p>
+                  <h4 className="font-bold mb-1 text-primary">Poster Studio</h4>
+                  <p className="text-[11px] text-muted-foreground">Add text, format typography, and grade colors.</p>
                 </div>
 
-                {/* Text Content */}
+                {/* Layer Selector */}
                 <div className="space-y-2">
-                  <label className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Headline Text</label>
-                  <textarea 
-                    value={textOverlay}
-                    onChange={(e) => setTextOverlay(e.target.value)}
-                    placeholder="Enter poster text..."
-                    rows={3}
-                    className="w-full bg-glass/5 border border-glass/10 rounded-xl p-3 text-sm outline-none focus:ring-1 focus:ring-primary/50 transition-all resize-none"
-                  />
-                </div>
-
-                {/* Typography formatting buttons */}
-                <div className="space-y-2">
-                  <label className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Formatting & Alignment</label>
-                  <div className="flex gap-2">
-                    {/* Alignment buttons */}
-                    <div className="flex bg-glass/5 rounded-xl border border-glass/10 p-1">
-                      <button 
-                        onClick={() => setTextAlign('left')}
-                        className={`p-1.5 rounded-lg transition-colors ${textAlign === 'left' ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10'}`}
-                      >
-                        <AlignLeft size={16} />
-                      </button>
-                      <button 
-                        onClick={() => setTextAlign('center')}
-                        className={`p-1.5 rounded-lg transition-colors ${textAlign === 'center' ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10'}`}
-                      >
-                        <AlignCenter size={16} />
-                      </button>
-                      <button 
-                        onClick={() => setTextAlign('right')}
-                        className={`p-1.5 rounded-lg transition-colors ${textAlign === 'right' ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10'}`}
-                      >
-                        <AlignRight size={16} />
-                      </button>
-                    </div>
-
-                    {/* Font weight and style toggles */}
-                    <div className="flex bg-glass/5 rounded-xl border border-glass/10 p-1 flex-1 justify-around">
-                      <button 
-                        onClick={() => setFontWeight(prev => prev === 'bold' ? 'normal' : 'bold')}
-                        className={`p-1.5 rounded-lg transition-colors px-2.5 ${fontWeight === 'bold' ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10'}`}
-                      >
-                        <Bold size={16} />
-                      </button>
-                      <button 
-                        onClick={() => setIsItalic(prev => !prev)}
-                        className={`p-1.5 rounded-lg transition-colors px-2.5 ${isItalic ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10'}`}
-                      >
-                        <Italic size={16} />
-                      </button>
-                      <button 
-                        onClick={() => setIsUppercase(prev => !prev)}
-                        className={`text-xs font-bold rounded-lg transition-colors px-2 ${isUppercase ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10 text-muted-foreground'}`}
-                      >
-                        aA
-                      </button>
-                    </div>
+                  <label className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest flex items-center gap-1"><Layers size={10} /> Active Layer</label>
+                  <div className="grid grid-cols-2 gap-2 bg-glass/5 rounded-xl border border-glass/10 p-1">
+                    <button
+                      onClick={() => setActiveLayer('header')}
+                      className={`py-1.5 text-xs rounded-lg transition-colors font-bold ${activeLayer === 'header' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      Title Layer
+                    </button>
+                    <button
+                      onClick={() => setActiveLayer('subtitle')}
+                      className={`py-1.5 text-xs rounded-lg transition-colors font-bold ${activeLayer === 'subtitle' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      Subtitle Layer
+                    </button>
                   </div>
                 </div>
 
-                {/* Font Family selection */}
-                <div className="space-y-2">
-                  <label className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Brand Font Family</label>
-                  <select 
-                    value={fontFamily}
-                    onChange={(e) => setFontFamily(e.target.value)}
-                    className="w-full bg-glass/5 border border-glass/10 rounded-xl p-2 text-xs outline-none focus:ring-1 focus:ring-primary/50"
-                  >
-                    <option value="system-ui, sans-serif">Modern Sans-Serif</option>
-                    <option value="'Playfair Display', Georgia, serif">Classic Serif (Editorial)</option>
-                    <option value="'Montserrat', sans-serif">Montserrat (Geometric Sans)</option>
-                    <option value="'Cinzel', Times, serif">Cinzel (Luxury & Elegant)</option>
-                    <option value="'Courier New', monospace">Courier (Minimalist Tech)</option>
-                    <option value="'Brush Script MT', cursive">Script / Cursive</option>
-                  </select>
-                </div>
+                {/* Active Layer Customizations */}
+                <div className="space-y-4 p-4 rounded-xl border border-glass/5 bg-glass/2">
+                  <div className="flex justify-between items-center pb-2 border-b border-glass/5">
+                    <span className="text-xs font-bold capitalize text-primary">{activeLayer} Text Settings</span>
+                  </div>
 
-                {/* Size and Position Inputs */}
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Text Size</span>
-                      <span className="font-mono text-[11px]">{textSize}px</span>
-                    </div>
-                    <input 
-                      type="range" min="12" max="120" value={textSize} 
-                      onChange={(e) => setTextSize(Number(e.target.value))}
-                      className="w-full accent-primary"
+                  {/* Text Content */}
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Text Content</label>
+                    <textarea 
+                      value={layerText}
+                      onChange={(e) => setLayerText(e.target.value)}
+                      placeholder={`Enter ${activeLayer} text...`}
+                      rows={2}
+                      className="w-full bg-glass/5 border border-glass/10 rounded-xl p-3 text-sm outline-none focus:ring-1 focus:ring-primary/50 transition-all resize-none"
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Horizontal Alignment (X)</span>
-                      <span className="font-mono text-[11px]">{textX}%</span>
-                    </div>
-                    <input 
-                      type="range" min="0" max="100" value={textX} 
-                      onChange={(e) => setTextX(Number(e.target.value))}
-                      className="w-full accent-primary"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Vertical Alignment (Y)</span>
-                      <span className="font-mono text-[11px]">{textY}%</span>
-                    </div>
-                    <input 
-                      type="range" min="0" max="100" value={textY} 
-                      onChange={(e) => setTextY(Number(e.target.value))}
-                      className="w-full accent-primary"
-                    />
-                  </div>
-                </div>
-
-                {/* Text Color / Banner Styling */}
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Text Fill Color</label>
-                    <div className="flex items-center gap-3">
-                      <div className="relative w-8 h-8 rounded-full border border-glass/20 overflow-hidden shrink-0">
-                        <input 
-                          type="color" value={textColor} 
-                          onChange={(e) => setTextColor(e.target.value)}
-                          className="absolute inset-0 w-12 h-12 -translate-x-2 -translate-y-2 border-0 cursor-pointer"
-                        />
+                  {/* Formatting Controls */}
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Alignment & Formatting</label>
+                    <div className="flex gap-2">
+                      <div className="flex bg-glass/5 rounded-xl border border-glass/10 p-1">
+                        <button 
+                          onClick={() => setLayerAlign('left')}
+                          className={`p-1.5 rounded-lg transition-colors ${layerAlign === 'left' ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10'}`}
+                        >
+                          <AlignLeft size={14} />
+                        </button>
+                        <button 
+                          onClick={() => setLayerAlign('center')}
+                          className={`p-1.5 rounded-lg transition-colors ${layerAlign === 'center' ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10'}`}
+                        >
+                          <AlignCenter size={14} />
+                        </button>
+                        <button 
+                          onClick={() => setLayerAlign('right')}
+                          className={`p-1.5 rounded-lg transition-colors ${layerAlign === 'right' ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10'}`}
+                        >
+                          <AlignRight size={14} />
+                        </button>
                       </div>
-                      <div className="flex gap-1.5 flex-wrap">
-                        {['#ffffff', '#000000', '#facc15', '#ef4444', '#3b82f6', '#22c55e', '#ff007f'].map(c => (
-                          <button 
-                            key={c} onClick={() => setTextColor(c)}
-                            className="w-5 h-5 rounded-full border border-white/20 transition-transform active:scale-90"
-                            style={{ backgroundColor: c }}
-                          />
-                        ))}
+
+                      <div className="flex bg-glass/5 rounded-xl border border-glass/10 p-1 flex-1 justify-around items-center">
+                        <button 
+                          onClick={() => setLayerFontWeight(prev => prev === 'bold' ? 'normal' : 'bold')}
+                          className={`p-1.5 rounded-lg transition-colors ${layerFontWeight === 'bold' ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10'}`}
+                        >
+                          <Bold size={14} />
+                        </button>
+                        <button 
+                          onClick={() => setLayerItalic(prev => !prev)}
+                          className={`p-1.5 rounded-lg transition-colors ${layerItalic ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10'}`}
+                        >
+                          <Italic size={14} />
+                        </button>
+                        <button 
+                          onClick={() => setLayerUppercase(prev => !prev)}
+                          className={`text-[10px] font-bold rounded-lg transition-colors px-2 ${layerUppercase ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10 text-muted-foreground'}`}
+                        >
+                          aA
+                        </button>
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Text Background Frame</label>
+                  {/* Brand Font Family */}
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Font Family</label>
                     <select 
-                      value={textBgColor}
-                      onChange={(e) => setTextBgColor(e.target.value)}
+                      value={layerFontFamily}
+                      onChange={(e) => setLayerFontFamily(e.target.value)}
                       className="w-full bg-glass/5 border border-glass/10 rounded-xl p-2 text-xs outline-none focus:ring-1 focus:ring-primary/50"
                     >
-                      <option value="transparent">None (Transparent / Dropped)</option>
-                      <option value="rgba(0,0,0,0.4)">Glassmorphic Matte Dark (Default)</option>
-                      <option value="rgba(0,0,0,0.85)">Solid Cinematic Black</option>
-                      <option value="rgba(255,255,255,0.4)">Glassmorphic Matte Light</option>
-                      <option value="rgba(255,255,255,0.85)">Solid Matte White</option>
+                      <option value="system-ui, sans-serif">Modern Sans-Serif</option>
+                      <option value="'Playfair Display', Georgia, serif">Classic Serif (Editorial)</option>
+                      <option value="'Montserrat', sans-serif">Montserrat (Geometric Sans)</option>
+                      <option value="'Cinzel', Times, serif">Cinzel (Luxury & Elegant)</option>
+                      <option value="'Courier New', monospace">Courier (Minimalist Tech)</option>
+                      <option value="'Brush Script MT', cursive">Script / Cursive</option>
                     </select>
+                  </div>
+
+                  {/* Sliders for Size and Rotation */}
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Size</span>
+                        <span className="font-mono text-[10px]">{layerSize}px</span>
+                      </div>
+                      <input 
+                        type="range" min="10" max="100" value={layerSize} 
+                        onChange={(e) => setLayerSize(Number(e.target.value))}
+                        className="w-full accent-primary"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Angle Rotation</span>
+                        <span className="font-mono text-[10px]">{layerRotation}°</span>
+                      </div>
+                      <input 
+                        type="range" min="-180" max="180" value={layerRotation} 
+                        onChange={(e) => setLayerRotation(Number(e.target.value))}
+                        className="w-full accent-primary"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Text Color / Brand Palette Selection */}
+                  <div className="space-y-3">
+                    {brandColors.length > 0 && (
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                          <Palette size={10} className="text-primary" /> Brand Palette
+                        </label>
+                        <div className="flex gap-1.5 flex-wrap">
+                          {brandColors.map(c => (
+                            <button 
+                              key={c} onClick={() => setLayerColor(c)}
+                              className="w-6 h-6 rounded-full border border-white/20 transition-transform active:scale-90"
+                              style={{ backgroundColor: c }}
+                              title="Sync with Brand Colors"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Custom Color</label>
+                      <div className="flex items-center gap-3">
+                        <div className="relative w-8 h-8 rounded-full border border-glass/20 overflow-hidden shrink-0">
+                          <input 
+                            type="color" value={layerColor} 
+                            onChange={(e) => setLayerColor(e.target.value)}
+                            className="absolute inset-0 w-12 h-12 -translate-x-2 -translate-y-2 border-0 cursor-pointer"
+                          />
+                        </div>
+                        <div className="flex gap-1.5 flex-wrap">
+                          {['#ffffff', '#000000', '#facc15', '#ef4444', '#3b82f6', '#22c55e'].map(c => (
+                            <button 
+                              key={c} onClick={() => setLayerColor(c)}
+                              className="w-5 h-5 rounded-full border border-white/20 transition-transform active:scale-90"
+                              style={{ backgroundColor: c }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Text Frame</label>
+                      <select 
+                        value={layerBgColor}
+                        onChange={(e) => setLayerBgColor(e.target.value)}
+                        className="w-full bg-glass/5 border border-glass/10 rounded-xl p-2 text-xs outline-none focus:ring-1 focus:ring-primary/50"
+                      >
+                        <option value="transparent">None (Transparent / Outline Glow)</option>
+                        <option value="rgba(0,0,0,0.5)">Matte Dark (Default)</option>
+                        <option value="rgba(0,0,0,0.85)">Solid Cinematic Black</option>
+                        <option value="rgba(255,255,255,0.45)">Matte Light</option>
+                        <option value="rgba(255,255,255,0.85)">Solid White</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
@@ -593,20 +784,20 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
                 {/* Color Adjustments */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <h5 className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Color Grading</h5>
+                    <h5 className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Color Grading & Filters</h5>
                     <button 
                       onClick={handleResetFilters}
                       className="text-[10px] text-primary flex items-center gap-1 hover:underline"
                     >
-                      <RotateCcw size={10} /> Reset
+                      <RotateCcw size={10} /> Reset All
                     </button>
                   </div>
                   
-                  {/* Hue track has colorful gradient representing hue spectrum */}
+                  {/* Hue shift with color gradient */}
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Color Tone Shift (Hue)</span>
-                      <span className="font-mono text-[11px]">{hueRotate}°</span>
+                      <span className="font-mono text-[10px]">{hueRotate}°</span>
                     </div>
                     <input 
                       type="range" min="0" max="360" value={hueRotate} 
@@ -621,7 +812,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Exposure (Brightness)</span>
-                      <span className="font-mono text-[11px]">{brightness}%</span>
+                      <span className="font-mono text-[10px]">{brightness}%</span>
                     </div>
                     <input 
                       type="range" min="50" max="150" value={brightness} 
@@ -633,7 +824,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Contrast Balance</span>
-                      <span className="font-mono text-[11px]">{contrast}%</span>
+                      <span className="font-mono text-[10px]">{contrast}%</span>
                     </div>
                     <input 
                       type="range" min="50" max="150" value={contrast} 
@@ -645,11 +836,23 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Color Saturation</span>
-                      <span className="font-mono text-[11px]">{saturate}%</span>
+                      <span className="font-mono text-[10px]">{saturate}%</span>
                     </div>
                     <input 
                       type="range" min="50" max="200" value={saturate} 
                       onChange={(e) => setSaturate(Number(e.target.value))}
+                      className="w-full accent-primary"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Atmosphere Blur</span>
+                      <span className="font-mono text-[10px]">{blur}px</span>
+                    </div>
+                    <input 
+                      type="range" min="0" max="10" value={blur} 
+                      onChange={(e) => setBlur(Number(e.target.value))}
                       className="w-full accent-primary"
                     />
                   </div>

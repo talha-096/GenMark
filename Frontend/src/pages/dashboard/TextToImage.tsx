@@ -372,6 +372,7 @@ export const TextToImage = () => {
            isOpen={isEditModalOpen}
            onClose={() => setIsEditModalOpen(false)}
            imageUrl={generatedImage}
+           brandColors={brands.find(b => b._id === selectedBrand)?.colors}
            onSave={(newUrl) => {
               setGeneratedImage(newUrl);
               setHistory(prev => [newUrl, ...prev.filter(u => u !== newUrl).slice(0, 3)]);
