@@ -8,15 +8,13 @@ import { TextMarquee } from "@/components/shared/TextMarquee";
 
 import { AgentCanvasFrame } from "@/components/home/AgentCanvasFrame";
 import { CreativeTransformation } from "@/components/home/CreativeTransformation";
+import { CheckCircle2, Zap, ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { 
-  CheckCircle2, 
-  Zap,
-  ArrowUpRight
-} from "lucide-react";
+import { useAuth } from "@/providers/AuthProvider";
 
 
 export const Home = () => {
+  const { isAuthenticated } = useAuth();
 
   const scene1Ref = useRef<HTMLElement>(null);
   const scene2Ref = useRef<HTMLElement>(null);
@@ -75,7 +73,7 @@ export const Home = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-24">
-              <Link to="/signup" className="group w-full sm:w-auto bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-dark)))] text-primary-foreground font-semibold px-10 py-5 text-lg rounded-full shadow-glow-xl hover:scale-105 transition-all flex items-center gap-3">
+              <Link to={isAuthenticated ? "/dashboard" : "/signup"} className="group w-full sm:w-auto bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-dark)))] text-primary-foreground font-semibold px-10 py-5 text-lg rounded-full shadow-glow-xl hover:scale-105 transition-all flex items-center gap-3">
                 <span>Try the Engine</span>
                 <Zap size={20} className="group-hover:fill-current" />
               </Link>
@@ -190,12 +188,12 @@ export const Home = () => {
             Ready to <GradientText>Scale?</GradientText>
           </h2>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
-            <Link to="/signup" className="group w-full sm:w-auto bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-dark)))] text-primary-foreground font-black px-12 py-6 text-xl rounded-full shadow-glow-xl hover:scale-105 transition-all flex items-center justify-center gap-3">
+            <Link to={isAuthenticated ? "/dashboard" : "/signup"} className="group w-full sm:w-auto bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-dark)))] text-primary-foreground font-black px-12 py-6 text-xl rounded-full shadow-glow-xl hover:scale-105 transition-all flex items-center justify-center gap-3">
               <span>GET STARTED NOW</span>
               <Zap size={24} />
             </Link>
-            <Link to="/login" className="px-12 py-6 font-bold text-xl border border-glass/20 rounded-full hover:bg-glass/5 transition-all">
-              MEMBER LOGIN
+            <Link to={isAuthenticated ? "/dashboard" : "/login"} className="px-12 py-6 font-bold text-xl border border-glass/20 rounded-full hover:bg-glass/5 transition-all">
+              {isAuthenticated ? "GO TO DASHBOARD" : "MEMBER LOGIN"}
             </Link>
           </div>
         </div>

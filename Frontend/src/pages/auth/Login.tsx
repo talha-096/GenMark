@@ -1,12 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/providers/AuthProvider";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { GradientText } from "@/components/shared/GradientText";
 
 export const Login = () => {
-    const { login } = useAuth();
+    const { login, isAuthenticated, isLoading: isLoadingAuth } = useAuth();
     const navigate = useNavigate();
+    
+    useEffect(() => {
+        if (!isLoadingAuth && isAuthenticated) {
+            navigate("/dashboard");
+        }
+    }, [isAuthenticated, isLoadingAuth, navigate]);
     
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
