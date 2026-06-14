@@ -5,7 +5,21 @@ import { GlassCard } from './GlassCard';
 import { Button } from './Button';
 import { apiClient } from '@/lib/api';
 import { toast } from 'sonner';
-import { X, Crop as CropIcon, Wand2, RefreshCw, Type, Palette } from 'lucide-react';
+import { 
+  X, 
+  Crop as CropIcon, 
+  Wand2, 
+  RefreshCw, 
+  Type, 
+  Palette, 
+  AlignLeft, 
+  AlignCenter, 
+  AlignRight, 
+  RotateCcw, 
+  Bold, 
+  Italic, 
+  Move 
+} from 'lucide-react';
 
 interface ImageEditModalProps {
   isOpen: boolean;
@@ -27,14 +41,22 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
   const [isTransforming, setIsTransforming] = useState(false);
 
   // Text Overlay state
-  const [textOverlay, setTextOverlay] = useState('New Launch!');
+  const [textOverlay, setTextOverlay] = useState('SEASON SALE\n50% OFF');
   const [textColor, setTextColor] = useState('#ffffff');
   const [textSize, setTextSize] = useState(36);
   const [textX, setTextX] = useState(50);
-  const [textY, setTextY] = useState(80);
-  const [textBgColor, setTextBgColor] = useState('rgba(0,0,0,0.5)');
-  const [fontFamily, setFontFamily] = useState('sans-serif');
+  const [textY, setTextY] = useState(50);
+  const [textBgColor, setTextBgColor] = useState('rgba(0,0,0,0.4)');
+  const [fontFamily, setFontFamily] = useState('system-ui, sans-serif');
   const [fontWeight, setFontWeight] = useState('bold');
+  const [isItalic, setIsItalic] = useState(false);
+  const [isUppercase, setIsUppercase] = useState(true);
+  const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('center');
+
+  // Drag state for text overlay
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isHoveringText, setIsHoveringText] = useState(false);
 
   // Color Filter Adjustments state
   const [brightness, setBrightness] = useState(100);
@@ -51,6 +73,37 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
     }
     return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  // Handle dragging logic
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      setTextX(Math.max(0, Math.min(100, Math.round(x))));
+      setTextY(Math.max(0, Math.min(100, Math.round(y))));
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
 
   if (!isOpen) return null;
 
@@ -152,35 +205,46 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
     ctx.filter = 'none';
 
     // 3. Draw text overlay
-    if (textOverlay.trim()) {
+    const rawText = textOverlay.trim();
+    if (rawText) {
+      const displayText = isUppercase ? rawText.toUpperCase() : rawText;
       const scaleFactor = image.naturalWidth / image.width;
       const naturalFontSize = textSize * scaleFactor;
+      const italicPrefix = isItalic ? 'italic ' : '';
       
-      ctx.font = `${fontWeight} ${naturalFontSize}px ${fontFamily}`;
+      ctx.font = `${italicPrefix}${fontWeight} ${naturalFontSize}px ${fontFamily}`;
       ctx.fillStyle = textColor;
-      ctx.textAlign = 'center';
+      ctx.textAlign = textAlign;
       ctx.textBaseline = 'middle';
 
       const xPos = (textX / 100) * canvas.width;
       const yPos = (textY / 100) * canvas.height;
 
+      const textLines = displayText.split('\n');
+      let maxWidth = 0;
+      textLines.forEach(line => {
+        const width = ctx.measureText(line).width;
+        if (width > maxWidth) maxWidth = width;
+      });
+
+      const paddingX = 24 * scaleFactor;
+      const paddingY = 16 * scaleFactor;
+      const lineHeight = naturalFontSize * 1.25;
+      const bannerHeight = (lineHeight * textLines.length) + (paddingY * 2);
+
+      let startX = xPos;
+      if (textAlign === 'center') {
+        startX = xPos - maxWidth / 2;
+      } else if (textAlign === 'right') {
+        startX = xPos - maxWidth;
+      }
+
       // Draw background banner if set
       if (textBgColor !== 'transparent') {
-        const textLines = textOverlay.split('\n');
-        let maxWidth = 0;
-        textLines.forEach(line => {
-          const width = ctx.measureText(line).width;
-          if (width > maxWidth) maxWidth = width;
-        });
-
-        const paddingX = 24 * scaleFactor;
-        const paddingY = 16 * scaleFactor;
-        const bannerHeight = (naturalFontSize * 1.2 * textLines.length) + (paddingY * 2);
-        
         ctx.fillStyle = textBgColor;
         ctx.fillRect(
-          xPos - maxWidth / 2 - paddingX,
-          yPos - bannerHeight / 2,
+          startX - paddingX,
+          yPos - (lineHeight * textLines.length) / 2 - paddingY,
           maxWidth + paddingX * 2,
           bannerHeight
         );
@@ -188,8 +252,6 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
 
       // Draw text lines
       ctx.fillStyle = textColor;
-      const textLines = textOverlay.split('\n');
-      const lineHeight = naturalFontSize * 1.2;
       const totalHeight = lineHeight * textLines.length;
       const startY = yPos - (totalHeight / 2) + (lineHeight / 2);
 
@@ -220,9 +282,19 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
     }, 'image/png');
   };
 
+  const handleResetFilters = () => {
+    setBrightness(100);
+    setContrast(100);
+    setSaturate(100);
+    setHueRotate(0);
+    toast.success('Filters reset to default');
+  };
+
+  const displayText = isUppercase ? textOverlay.toUpperCase() : textOverlay;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in duration-300">
-      <GlassCard className="w-full max-w-4xl max-h-[95vh] flex flex-col overflow-hidden relative">
+      <GlassCard className="w-full max-w-5xl max-h-[95vh] flex flex-col overflow-hidden relative">
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-full bg-glass/10 hover:bg-glass/20 transition-colors z-10"
@@ -241,7 +313,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
             onClick={() => setActiveTab('text')}
             className={`flex items-center gap-2 font-display font-bold text-lg pb-2 transition-colors ${activeTab === 'text' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'}`}
           >
-            <Type size={20} /> Text & Colors
+            <Type size={20} /> Professional Editor
           </button>
           <button 
             onClick={() => setActiveTab('ai')}
@@ -251,9 +323,9 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col md:flex-row gap-8">
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col lg:flex-row gap-8">
           {/* Image Preview Area */}
-          <div className="flex-1 flex items-center justify-center bg-black/20 rounded-xl overflow-hidden min-h-[300px] relative">
+          <div className="flex-1 flex items-center justify-center bg-black/20 rounded-2xl overflow-hidden min-h-[400px] relative p-4 border border-glass/10">
             {activeTab === 'crop' && (
               <ReactCrop
                 crop={crop}
@@ -264,45 +336,65 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
                   ref={imgRef}
                   src={imageUrl} 
                   alt="Edit preview" 
-                  className="max-h-[60vh] object-contain"
+                  className="max-h-[65vh] object-contain rounded-lg"
                   crossOrigin="anonymous"
                 />
               </ReactCrop>
             )}
             
             {activeTab === 'text' && (
-              <div className="relative max-h-[60vh] flex items-center justify-center select-none">
+              <div 
+                ref={containerRef}
+                className="relative max-h-[65vh] flex items-center justify-center select-none"
+              >
                 <img 
                   ref={imgRef}
                   src={imageUrl} 
                   alt="Text preview" 
-                  className="max-h-[60vh] object-contain"
+                  className="max-h-[65vh] object-contain rounded-lg shadow-2xl"
                   crossOrigin="anonymous"
                   style={{
                     filter: `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%) hue-rotate(${hueRotate}deg)`
                   }}
                 />
+                
+                {/* Drag Instructions overlay */}
+                <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] text-white/75 font-mono flex items-center gap-1.5 pointer-events-none">
+                  <Move size={10} /> Drag text directly on poster to position
+                </div>
+
                 <div 
-                  className="absolute pointer-events-none text-center select-none whitespace-pre-line"
+                  onMouseDown={handleMouseDown}
+                  onMouseEnter={() => setIsHoveringText(true)}
+                  onMouseLeave={() => setIsHoveringText(false)}
+                  className={`absolute select-none whitespace-pre-line cursor-move transition-shadow duration-200 ${isDragging ? 'shadow-xl' : ''}`}
                   style={{
                     left: `${textX}%`,
                     top: `${textY}%`,
-                    transform: 'translate(-50%, -50%)',
+                    transform: textAlign === 'center' 
+                      ? 'translate(-50%, -50%)' 
+                      : textAlign === 'left' 
+                        ? 'translate(0%, -50%)' 
+                        : 'translate(-100%, -50%)',
+                    textAlign: textAlign,
                     color: textColor,
                     fontSize: `${textSize}px`,
                     fontFamily: fontFamily,
                     fontWeight: fontWeight,
+                    fontStyle: isItalic ? 'italic' : 'normal',
                     backgroundColor: textBgColor,
-                    padding: textBgColor !== 'transparent' ? '6px 16px' : '0',
+                    padding: textBgColor !== 'transparent' ? '8px 20px' : '4px',
                     borderRadius: '8px',
-                    lineHeight: '1.2',
+                    lineHeight: '1.25',
                     maxWidth: '85%',
                     wordBreak: 'break-word',
-                    boxShadow: textBgColor !== 'transparent' ? '0 4px 12px rgba(0,0,0,0.3)' : 'none',
-                    textShadow: textBgColor === 'transparent' ? '1px 1px 4px rgba(0,0,0,0.8)' : 'none'
+                    outline: isHoveringText || isDragging ? '2px dashed #3b82f6' : 'none',
+                    outlineOffset: '4px',
+                    boxShadow: textBgColor !== 'transparent' ? '0 8px 24px rgba(0,0,0,0.4)' : 'none',
+                    textShadow: textBgColor === 'transparent' ? '1px 1px 6px rgba(0,0,0,0.9)' : 'none'
                   }}
                 >
-                  {textOverlay}
+                  {displayText || 'Enter Text'}
                 </div>
               </div>
             )}
@@ -311,13 +403,13 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
               <img 
                 src={imageUrl} 
                 alt="AI preview" 
-                className="max-h-[60vh] object-contain"
+                className="max-h-[65vh] object-contain rounded-lg"
               />
             )}
           </div>
 
           {/* Controls Area */}
-          <div className="w-full md:w-80 flex flex-col gap-6 shrink-0 overflow-y-auto max-h-[65vh] pr-2">
+          <div className="w-full lg:w-80 flex flex-col gap-6 shrink-0 overflow-y-auto max-h-[70vh] pr-2">
             {activeTab === 'crop' && (
               <div className="space-y-4">
                 <div>
@@ -333,60 +425,98 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
             {activeTab === 'text' && (
               <div className="space-y-6">
                 <div>
-                  <h4 className="font-bold mb-2">Text & Colors</h4>
-                  <p className="text-sm text-muted-foreground">Customize text overlays and adjust the colors of your poster.</p>
+                  <h4 className="font-bold mb-1 text-primary">Professional Typography</h4>
+                  <p className="text-[11px] text-muted-foreground">Design premium visual copy overlays for your campaigns.</p>
                 </div>
 
-                {/* Text Input */}
+                {/* Text Content */}
                 <div className="space-y-2">
-                  <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Text Content</label>
+                  <label className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Headline Text</label>
                   <textarea 
                     value={textOverlay}
                     onChange={(e) => setTextOverlay(e.target.value)}
                     placeholder="Enter poster text..."
-                    rows={2}
+                    rows={3}
                     className="w-full bg-glass/5 border border-glass/10 rounded-xl p-3 text-sm outline-none focus:ring-1 focus:ring-primary/50 transition-all resize-none"
                   />
                 </div>
 
-                {/* Font Customization */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Font Family</label>
-                    <select 
-                      value={fontFamily}
-                      onChange={(e) => setFontFamily(e.target.value)}
-                      className="w-full bg-glass/5 border border-glass/10 rounded-xl p-2 text-xs outline-none focus:ring-1 focus:ring-primary/50"
-                    >
-                      <option value="sans-serif">Sans Serif</option>
-                      <option value="serif">Elegant Serif</option>
-                      <option value="monospace">Monospace</option>
-                      <option value="cursive">Script / Cursive</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Font Weight</label>
-                    <select 
-                      value={fontWeight}
-                      onChange={(e) => setFontWeight(e.target.value)}
-                      className="w-full bg-glass/5 border border-glass/10 rounded-xl p-2 text-xs outline-none focus:ring-1 focus:ring-primary/50"
-                    >
-                      <option value="normal">Normal</option>
-                      <option value="bold">Bold</option>
-                      <option value="bolder">Extra Bold</option>
-                    </select>
+                {/* Typography formatting buttons */}
+                <div className="space-y-2">
+                  <label className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Formatting & Alignment</label>
+                  <div className="flex gap-2">
+                    {/* Alignment buttons */}
+                    <div className="flex bg-glass/5 rounded-xl border border-glass/10 p-1">
+                      <button 
+                        onClick={() => setTextAlign('left')}
+                        className={`p-1.5 rounded-lg transition-colors ${textAlign === 'left' ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10'}`}
+                      >
+                        <AlignLeft size={16} />
+                      </button>
+                      <button 
+                        onClick={() => setTextAlign('center')}
+                        className={`p-1.5 rounded-lg transition-colors ${textAlign === 'center' ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10'}`}
+                      >
+                        <AlignCenter size={16} />
+                      </button>
+                      <button 
+                        onClick={() => setTextAlign('right')}
+                        className={`p-1.5 rounded-lg transition-colors ${textAlign === 'right' ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10'}`}
+                      >
+                        <AlignRight size={16} />
+                      </button>
+                    </div>
+
+                    {/* Font weight and style toggles */}
+                    <div className="flex bg-glass/5 rounded-xl border border-glass/10 p-1 flex-1 justify-around">
+                      <button 
+                        onClick={() => setFontWeight(prev => prev === 'bold' ? 'normal' : 'bold')}
+                        className={`p-1.5 rounded-lg transition-colors px-2.5 ${fontWeight === 'bold' ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10'}`}
+                      >
+                        <Bold size={16} />
+                      </button>
+                      <button 
+                        onClick={() => setIsItalic(prev => !prev)}
+                        className={`p-1.5 rounded-lg transition-colors px-2.5 ${isItalic ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10'}`}
+                      >
+                        <Italic size={16} />
+                      </button>
+                      <button 
+                        onClick={() => setIsUppercase(prev => !prev)}
+                        className={`text-xs font-bold rounded-lg transition-colors px-2 ${isUppercase ? 'bg-primary text-primary-foreground' : 'hover:bg-glass/10 text-muted-foreground'}`}
+                      >
+                        aA
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                {/* Sliders for Size & Position */}
+                {/* Font Family selection */}
+                <div className="space-y-2">
+                  <label className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Brand Font Family</label>
+                  <select 
+                    value={fontFamily}
+                    onChange={(e) => setFontFamily(e.target.value)}
+                    className="w-full bg-glass/5 border border-glass/10 rounded-xl p-2 text-xs outline-none focus:ring-1 focus:ring-primary/50"
+                  >
+                    <option value="system-ui, sans-serif">Modern Sans-Serif</option>
+                    <option value="'Playfair Display', Georgia, serif">Classic Serif (Editorial)</option>
+                    <option value="'Montserrat', sans-serif">Montserrat (Geometric Sans)</option>
+                    <option value="'Cinzel', Times, serif">Cinzel (Luxury & Elegant)</option>
+                    <option value="'Courier New', monospace">Courier (Minimalist Tech)</option>
+                    <option value="'Brush Script MT', cursive">Script / Cursive</option>
+                  </select>
+                </div>
+
+                {/* Size and Position Inputs */}
                 <div className="space-y-4">
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Text Size</span>
-                      <span>{textSize}px</span>
+                      <span className="font-mono text-[11px]">{textSize}px</span>
                     </div>
                     <input 
-                      type="range" min="12" max="100" value={textSize} 
+                      type="range" min="12" max="120" value={textSize} 
                       onChange={(e) => setTextSize(Number(e.target.value))}
                       className="w-full accent-primary"
                     />
@@ -394,8 +524,8 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
 
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Horizontal Pos (X)</span>
-                      <span>{textX}%</span>
+                      <span className="text-muted-foreground">Horizontal Alignment (X)</span>
+                      <span className="font-mono text-[11px]">{textX}%</span>
                     </div>
                     <input 
                       type="range" min="0" max="100" value={textX} 
@@ -406,8 +536,8 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
 
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Vertical Pos (Y)</span>
-                      <span>{textY}%</span>
+                      <span className="text-muted-foreground">Vertical Alignment (Y)</span>
+                      <span className="font-mono text-[11px]">{textY}%</span>
                     </div>
                     <input 
                       type="range" min="0" max="100" value={textY} 
@@ -417,21 +547,23 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
                   </div>
                 </div>
 
-                {/* Colors */}
+                {/* Text Color / Banner Styling */}
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Text Color</label>
-                    <div className="flex items-center gap-2">
-                      <input 
-                        type="color" value={textColor} 
-                        onChange={(e) => setTextColor(e.target.value)}
-                        className="w-8 h-8 rounded-full border-0 cursor-pointer overflow-hidden"
-                      />
-                      <div className="flex gap-1.5">
-                        {['#ffffff', '#000000', '#facc15', '#ef4444', '#3b82f6', '#22c55e'].map(c => (
+                    <label className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Text Fill Color</label>
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-8 h-8 rounded-full border border-glass/20 overflow-hidden shrink-0">
+                        <input 
+                          type="color" value={textColor} 
+                          onChange={(e) => setTextColor(e.target.value)}
+                          className="absolute inset-0 w-12 h-12 -translate-x-2 -translate-y-2 border-0 cursor-pointer"
+                        />
+                      </div>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {['#ffffff', '#000000', '#facc15', '#ef4444', '#3b82f6', '#22c55e', '#ff007f'].map(c => (
                           <button 
                             key={c} onClick={() => setTextColor(c)}
-                            className="w-5 h-5 rounded-full border border-white/20"
+                            className="w-5 h-5 rounded-full border border-white/20 transition-transform active:scale-90"
                             style={{ backgroundColor: c }}
                           />
                         ))}
@@ -440,17 +572,17 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Background Banner</label>
+                    <label className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Text Background Frame</label>
                     <select 
                       value={textBgColor}
                       onChange={(e) => setTextBgColor(e.target.value)}
                       className="w-full bg-glass/5 border border-glass/10 rounded-xl p-2 text-xs outline-none focus:ring-1 focus:ring-primary/50"
                     >
-                      <option value="transparent">None (Text Shadow Only)</option>
-                      <option value="rgba(0,0,0,0.5)">Dark Semi-Transparent</option>
-                      <option value="rgba(0,0,0,0.85)">Dark Solid</option>
-                      <option value="rgba(255,255,255,0.6)">Light Semi-Transparent</option>
-                      <option value="rgba(255,255,255,0.9)">Light Solid</option>
+                      <option value="transparent">None (Transparent / Dropped)</option>
+                      <option value="rgba(0,0,0,0.4)">Glassmorphic Matte Dark (Default)</option>
+                      <option value="rgba(0,0,0,0.85)">Solid Cinematic Black</option>
+                      <option value="rgba(255,255,255,0.4)">Glassmorphic Matte Light</option>
+                      <option value="rgba(255,255,255,0.85)">Solid Matte White</option>
                     </select>
                   </div>
                 </div>
@@ -458,26 +590,38 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
                 {/* Separator */}
                 <hr className="border-glass/10 my-4" />
 
-                {/* Image Filters Section */}
+                {/* Color Adjustments */}
                 <div className="space-y-4">
-                  <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Adjust Image Colors</h5>
+                  <div className="flex justify-between items-center">
+                    <h5 className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Color Grading</h5>
+                    <button 
+                      onClick={handleResetFilters}
+                      className="text-[10px] text-primary flex items-center gap-1 hover:underline"
+                    >
+                      <RotateCcw size={10} /> Reset
+                    </button>
+                  </div>
                   
+                  {/* Hue track has colorful gradient representing hue spectrum */}
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Hue (Change Colors)</span>
-                      <span>{hueRotate}°</span>
+                      <span className="text-muted-foreground">Color Tone Shift (Hue)</span>
+                      <span className="font-mono text-[11px]">{hueRotate}°</span>
                     </div>
                     <input 
                       type="range" min="0" max="360" value={hueRotate} 
                       onChange={(e) => setHueRotate(Number(e.target.value))}
-                      className="w-full accent-primary"
+                      className="w-full h-2 rounded-lg appearance-none cursor-pointer outline-none transition-all"
+                      style={{
+                        background: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)'
+                      }}
                     />
                   </div>
 
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Brightness</span>
-                      <span>{brightness}%</span>
+                      <span className="text-muted-foreground">Exposure (Brightness)</span>
+                      <span className="font-mono text-[11px]">{brightness}%</span>
                     </div>
                     <input 
                       type="range" min="50" max="150" value={brightness} 
@@ -488,8 +632,8 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
 
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Contrast</span>
-                      <span>{contrast}%</span>
+                      <span className="text-muted-foreground">Contrast Balance</span>
+                      <span className="font-mono text-[11px]">{contrast}%</span>
                     </div>
                     <input 
                       type="range" min="50" max="150" value={contrast} 
@@ -500,8 +644,8 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
 
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Saturation</span>
-                      <span>{saturate}%</span>
+                      <span className="text-muted-foreground">Color Saturation</span>
+                      <span className="font-mono text-[11px]">{saturate}%</span>
                     </div>
                     <input 
                       type="range" min="50" max="200" value={saturate} 
@@ -518,7 +662,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ isOpen, onClose,
                   className="w-full mt-4"
                 >
                   {isTransforming ? (
-                    <><RefreshCw className="animate-spin mr-2" size={18} /> Saving...</>
+                    <><RefreshCw className="animate-spin mr-2" size={18} /> Processing...</>
                   ) : (
                     <><Palette className="mr-2" size={18} /> Save Design</>
                   )}
