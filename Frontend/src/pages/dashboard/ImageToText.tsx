@@ -464,31 +464,11 @@ export const ImageToText = () => {
         <GlassCard className="min-h-[500px] relative overflow-hidden flex flex-col items-center justify-center border-glass/5 p-6">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.02)_0%,transparent_70%)] pointer-events-none" />
           
-          {isGenerating ? (
-            <div className="flex flex-col items-center gap-8 w-full max-w-md my-auto">
-              <div className="relative w-40 h-40">
-                <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-[ping_3s_infinite]" />
-                <div className="absolute inset-2 rounded-full border border-primary/40 animate-[spin_10s_linear_infinite]" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Cpu size={56} className="text-primary animate-pulse" />
-                </div>
-              </div>
-              <div className="w-full space-y-3">
-                <div className="flex justify-between text-xs font-mono uppercase tracking-widest">
-                  <span>Pipeline Analysis</span>
-                  <span className="text-primary">{progress}%</span>
-                </div>
-                <div className="h-1.5 w-full bg-glass/5 rounded-full overflow-hidden p-[2px]">
-                  <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
-                </div>
-                <p className="text-center text-[10px] text-muted-foreground italic tracking-widest">Running generative filters on visual boundaries...</p>
-              </div>
-            </div>
-          ) : imageUrl ? (
+          {imageUrl ? (
             /* Split View when image is loaded */
             <div className="w-full flex flex-col md:grid md:grid-cols-12 gap-8 h-full animate-in fade-in duration-500">
-              {/* Left Column: Image Preview */}
-              <div className="md:col-span-5 flex flex-col gap-4">
+              {/* Left Column: Image Preview + Prompt Input + Generate Button */}
+              <div className="md:col-span-5 flex flex-col gap-5">
                 <div className="relative rounded-2xl overflow-hidden border border-glass/10 shadow-glow-sm bg-glass-inverse/40 group aspect-square flex items-center justify-center">
                   <img src={imageUrl} alt="Uploaded Source" className="max-w-full max-h-full object-contain" />
                   <div className="absolute inset-0 bg-glass-inverse/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
@@ -501,88 +481,143 @@ export const ImageToText = () => {
                     </button>
                   </div>
                 </div>
-                
-                <div className="flex items-center justify-between p-3 rounded-xl bg-glass/5 border border-glass/10">
-                  <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Visual Matrix</span>
-                  <span className="px-2 py-0.5 rounded bg-green-500/10 text-green-400 font-mono text-[9px] font-bold uppercase">Online</span>
+
+                {/* Directive / Prompt input directly below the image */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                    <Sparkles size={10} /> Custom Prompt / Directive
+                  </label>
+                  <textarea 
+                    value={customPrompt}
+                    onChange={(e) => setCustomPrompt(e.target.value)}
+                    placeholder="E.g., Write a premium Instagram post about this bag in our brand colors..."
+                    rows={3}
+                    className="w-full bg-glass/5 border border-glass/10 rounded-xl p-3 text-xs outline-none focus:ring-1 focus:ring-primary/50 transition-all resize-none placeholder:text-muted-foreground/35"
+                  />
                 </div>
+
+                {/* Generate Button right here */}
+                <Button 
+                  onClick={startAnalysis}
+                  disabled={isGenerating || isUploading || !imageUrl}
+                  className="w-full h-12 rounded-xl font-bold shadow-glow-sm hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                >
+                  {isGenerating ? (
+                    <RefreshCw size={16} className="animate-spin" />
+                  ) : (
+                    <Zap size={16} />
+                  )}
+                  <span>{isGenerating ? "Processing..." : "Generate Analysis"}</span>
+                </Button>
               </div>
 
-              {/* Right Column: Dynamic Output display based on task */}
+              {/* Right Column: Loading or Output Box */}
               <div className="md:col-span-7 flex flex-col gap-6">
-                {/* Visual Description Card (Stage 1 Output) */}
-                {(generatedCaption || selectedTask !== "marketing") && (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <FileText size={16} className="text-cyan-400" />
-                        <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest">
-                          {selectedTask === "seo" ? "SEO Metadata" : selectedTask === "audit" ? "Color Audit" : "Visual Description"}
-                        </span>
+                {isGenerating ? (
+                  <div className="flex-1 flex flex-col items-center justify-center gap-6 p-6 min-h-[300px] my-auto">
+                    <div className="relative w-28 h-28">
+                      <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-[ping_3s_infinite]" />
+                      <div className="absolute inset-2 rounded-full border border-primary/40 animate-[spin_10s_linear_infinite]" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Cpu size={36} className="text-primary animate-pulse" />
                       </div>
-                      {generatedCaption && (
-                        <button 
-                          onClick={() => copyToClipboard(generatedCaption)}
-                          className="p-1 hover:text-cyan-400 text-muted-foreground transition-colors"
-                        >
-                          <Copy size={14} />
-                        </button>
-                      )}
                     </div>
-                    <div className="p-4 bg-glass/5 border border-glass/10 rounded-2xl text-sm leading-relaxed text-foreground/80 font-sans min-h-[80px]">
-                      {generatedCaption || "Visual blueprint is being mapped. Start the workstation to populate."}
+                    <div className="w-full max-w-sm space-y-3">
+                      <div className="flex justify-between text-xs font-mono uppercase tracking-widest">
+                        <span>Pipeline Analysis</span>
+                        <span className="text-primary">{progress}%</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-glass/5 rounded-full overflow-hidden p-[2px]">
+                        <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+                      </div>
+                      <p className="text-center text-[10px] text-muted-foreground italic tracking-widest">Running Florence-2 visual mapping filters...</p>
                     </div>
                   </div>
-                )}
-
-                {/* Persuasive Copywriting Card (Stage 2 Output) */}
-                {selectedTask === "marketing" && (
-                  <div className="space-y-3 flex-1 flex flex-col">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Sparkles size={16} className="text-purple-400" />
-                        <span className="text-[10px] font-mono text-purple-400 uppercase tracking-widest">Marketing Synthesis</span>
-                      </div>
-                      {generatedCopy && (
-                        <button 
-                          onClick={() => copyToClipboard(generatedCopy)}
-                          className="p-1 hover:text-purple-400 text-muted-foreground transition-colors"
-                        >
-                          <Copy size={14} />
-                        </button>
-                      )}
-                    </div>
-                    <div className="flex-1 p-5 bg-gradient-to-br from-primary/5 to-purple-500/5 border border-primary/20 rounded-2xl text-base leading-relaxed text-foreground/95 font-sans min-h-[160px] relative">
-                      {generatedCopy ? (
-                        <>
-                          <p className="whitespace-pre-wrap">{generatedCopy}</p>
-                          <div className="mt-8 pt-4 border-t border-glass/5 flex items-center justify-between">
-                            <span className="flex items-center gap-1 text-[10px] font-mono opacity-60"><Clock size={10} /> Sync: Realtime</span>
-                            {appliedBrandKit ? (
-                              <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-primary/10 border border-primary/20">
-                                <div
-                                  className="w-2.5 h-2.5 rounded-full"
-                                  style={{ background: appliedBrandKit.colors?.[0] ?? "#3b82f6" }}
-                                />
-                                <ShieldCheck size={10} className="text-primary" />
-                                <span className="text-[9px] font-mono font-bold text-primary uppercase tracking-wider">
-                                  {appliedBrandKit.name}
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="flex items-center gap-1 text-[10px] font-mono text-green-400 font-bold opacity-60">
-                                <ShieldCheck size={10} /> Brand Compliant
-                              </span>
-                            )}
+                ) : (
+                  <>
+                    {/* Visual Description Card (Stage 1 Output) */}
+                    {(generatedCaption || selectedTask !== "marketing") && (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileText size={16} className="text-cyan-400" />
+                            <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest">
+                              {selectedTask === "seo" ? "SEO Metadata" : selectedTask === "audit" ? "Color Audit" : "Visual Description"}
+                            </span>
                           </div>
-                        </>
-                      ) : (
-                        <div className="h-full flex items-center justify-center text-muted-foreground/30 text-xs italic">
-                          Awaiting Stage 1 vision mapping.
+                          {generatedCaption && (
+                            <button 
+                              onClick={() => copyToClipboard(generatedCaption)}
+                              className="p-1 hover:text-cyan-400 text-muted-foreground transition-colors"
+                            >
+                              <Copy size={14} />
+                            </button>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </div>
+                        <div className="p-4 bg-glass/5 border border-glass/10 rounded-2xl text-sm leading-relaxed text-foreground/80 font-sans min-h-[80px]">
+                          {generatedCaption || "Visual description will appear here after generation."}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Persuasive Copywriting Card (Stage 2 Output) */}
+                    {selectedTask === "marketing" && (
+                      <div className="space-y-3 flex-1 flex flex-col">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Sparkles size={16} className="text-purple-400" />
+                            <span className="text-[10px] font-mono text-purple-400 uppercase tracking-widest">Marketing Synthesis</span>
+                          </div>
+                          {generatedCopy && (
+                            <button 
+                              onClick={() => copyToClipboard(generatedCopy)}
+                              className="p-1 hover:text-purple-400 text-muted-foreground transition-colors"
+                            >
+                              <Copy size={14} />
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex-1 p-5 bg-gradient-to-br from-primary/5 to-purple-500/5 border border-primary/20 rounded-2xl text-base leading-relaxed text-foreground/95 font-sans min-h-[160px] relative">
+                          {generatedCopy ? (
+                            <>
+                              <p className="whitespace-pre-wrap">{generatedCopy}</p>
+                              <div className="mt-8 pt-4 border-t border-glass/5 flex items-center justify-between">
+                                <span className="flex items-center gap-1 text-[10px] font-mono opacity-60"><Clock size={10} /> Sync: Realtime</span>
+                                {appliedBrandKit ? (
+                                  <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-primary/10 border border-primary/20">
+                                    <div
+                                      className="w-2.5 h-2.5 rounded-full"
+                                      style={{ background: appliedBrandKit.colors?.[0] ?? "#3b82f6" }}
+                                    />
+                                    <ShieldCheck size={10} className="text-primary" />
+                                    <span className="text-[9px] font-mono font-bold text-primary uppercase tracking-wider">
+                                      {appliedBrandKit.name}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="flex items-center gap-1 text-[10px] font-mono text-green-400 font-bold opacity-60">
+                                    <ShieldCheck size={10} /> Brand Compliant
+                                  </span>
+                                )}
+                              </div>
+                            </>
+                          ) : (
+                            <div className="h-full flex items-center justify-center text-muted-foreground/30 text-xs italic min-h-[120px]">
+                              Awaiting Stage 1 vision mapping.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {!generatedCaption && !generatedCopy && (
+                      <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-glass/2 rounded-2xl border border-glass/5 min-h-[300px]">
+                        <FileText size={48} className="opacity-15 mb-4 text-primary" />
+                        <h4 className="text-sm font-bold mb-1 opacity-70">Awaiting Generation</h4>
+                        <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">Adjust your brand kit and custom prompt directives, then click "Generate Analysis" to start the model pipeline.</p>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>

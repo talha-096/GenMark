@@ -159,7 +159,7 @@ def edit_image():
 @generation_bp.route("/upload-image", methods=["POST"])
 @jwt_required()
 def upload_image():
-    """Upload an image to S3 for image-to-text analysis"""
+    """Upload an image to S3 for image-to-text analysis, with local storage fallback"""
     import os
     import logging
     import traceback
@@ -179,24 +179,47 @@ def upload_image():
         return jsonify({"message": f"Unsupported file type. Allowed: {', '.join(allowed_extensions)}"}), 400
 
     try:
-        # Upload to S3
-        s3 = S3Service()
-        logging.info(f"Upload attempt: bucket={s3.bucket_name}, region={s3.region}")
-        timestamp = int(datetime.utcnow().timestamp())
-        clean_name = "".join(c for c in file.filename if c.isalnum() or c in "._-").strip()
-        s3_path = f"uploads/img_{timestamp}_{clean_name}"
-        
+        # Read bytes
         file_bytes = file.read()
         logging.info(f"File size: {len(file_bytes)} bytes, content_type={file.content_type}")
         
-        success = s3.upload_file(file_bytes, s3_path, content_type=file.content_type)
+        s3 = S3Service()
+        s3_configured = s3.access_key and s3.secret_key and s3.bucket_name
+        timestamp = int(datetime.utcnow().timestamp())
+        clean_name = "".join(c for c in file.filename if c.isalnum() or c in "._-").strip()
+        s3_path_generated = f"uploads/img_{timestamp}_{clean_name}"
         
+        success = False
+        image_url = None
+        s3_path = None
+        
+        if s3_configured:
+            try:
+                logging.info(f"Attempting S3 upload: bucket={s3.bucket_name}, region={s3.region}")
+                success = s3.upload_file(file_bytes, s3_path_generated, content_type=file.content_type)
+                if success:
+                    image_url = s3.get_presigned_url(s3_path_generated)
+                    s3_path = s3_path_generated
+            except Exception as s3_err:
+                logging.error(f"S3 upload failed: {s3_err}")
+                
         if not success:
-            logging.error(f"S3 upload returned False for path: {s3_path}")
-            return jsonify({"message": "Failed to upload to S3", "detail": f"bucket={s3.bucket_name}, region={s3.region}"}), 500
+            # Fallback to local storage
+            logging.info("Falling back to local storage for uploaded image")
+            from flask import current_app
+            local_storage_dir = os.path.join(current_app.root_path, 'storage')
+            os.makedirs(local_storage_dir, exist_ok=True)
             
-        image_url = s3.get_presigned_url(s3_path)
-        
+            local_filename = f"img_{timestamp}_{clean_name}"
+            local_filepath = os.path.join(local_storage_dir, local_filename)
+            
+            with open(local_filepath, "wb") as f:
+                f.write(file_bytes)
+                
+            # Construct local URL
+            image_url = f"{request.scheme}://{request.host}/storage/{local_filename}"
+            logging.info(f"Local storage upload success: {image_url}")
+            
         return jsonify({
             "message": "Image uploaded successfully",
             "image_url": image_url,

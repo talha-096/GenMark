@@ -33,7 +33,7 @@ def create_brand_kit():
 @brand_bp.route("/upload-logo", methods=["POST"])
 @jwt_required()
 def upload_logo():
-    """Upload a logo to S3"""
+    """Upload a logo to S3 with local storage fallback"""
     if "logo" not in request.files:
         return jsonify({"message": "No logo file provided"}), 400
         
@@ -47,20 +47,49 @@ def upload_logo():
     if ext not in allowed_extensions:
         return jsonify({"message": f"Unsupported file type. Allowed: {', '.join(allowed_extensions)}"}), 400
 
+    # Read bytes
+    file_bytes = file.read()
+
     # Upload to S3
     s3 = S3Service()
+    s3_configured = s3.access_key and s3.secret_key and s3.bucket_name
     timestamp = int(datetime.utcnow().timestamp())
     # Clean filename to avoid issues
     clean_name = "".join(c for c in file.filename if c.isalnum() or c in "._-").strip()
-    s3_path = f"logos/logo_{timestamp}_{clean_name}"
+    s3_path_generated = f"logos/logo_{timestamp}_{clean_name}"
     
-    success = s3.upload_file(file.read(), s3_path, content_type=file.content_type)
+    success = False
+    logo_url = None
+    s3_path = None
     
+    if s3_configured:
+        try:
+            success = s3.upload_file(file_bytes, s3_path_generated, content_type=file.content_type)
+            if success:
+                logo_url = s3.get_presigned_url(s3_path_generated)
+                s3_path = s3_path_generated
+        except Exception as s3_err:
+            import logging
+            logging.error(f"S3 logo upload exception: {s3_err}")
+
     if not success:
-        return jsonify({"message": "Failed to upload to S3"}), 500
+        # Fallback to local storage
+        import logging
+        logging.info("Falling back to local storage for uploaded logo")
+        from flask import current_app
+        local_storage_dir = os.path.join(current_app.root_path, 'storage')
+        os.makedirs(local_storage_dir, exist_ok=True)
         
-    logo_url = s3.get_presigned_url(s3_path)
-    
+        local_filename = f"logo_{timestamp}_{clean_name}"
+        local_filepath = os.path.join(local_storage_dir, local_filename)
+        
+        with open(local_filepath, "wb") as f:
+            f.write(file_bytes)
+            
+        # Construct local URL
+        logo_url = f"{request.scheme}://{request.host}/storage/{local_filename}"
+        logging.info(f"Local storage logo upload success: {logo_url}")
+        
     # Optional: Update brand kit if ID provided
     kit_id = request.form.get("kit_id")
     if kit_id:
@@ -69,7 +98,7 @@ def upload_logo():
     return jsonify({
         "message": "Logo uploaded successfully",
         "logo_url": logo_url,
-        "s3_path": s3_path # Returning S3 path for future reference
+        "s3_path": s3_path
     }), 200
 
 @brand_bp.route("/", methods=["GET"])

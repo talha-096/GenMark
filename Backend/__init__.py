@@ -45,6 +45,16 @@ def create_app(config_name='default'):
     app.register_blueprint(dashboard_bp, url_prefix='/api/dashboard')
     app.register_blueprint(settings_bp, url_prefix='/api/settings')
 
+    # Serve static files from storage folder as local fallback
+    import os
+    from flask import send_from_directory
+    storage_dir = os.path.join(app.root_path, 'storage')
+    os.makedirs(storage_dir, exist_ok=True)
+    
+    @app.route('/storage/<path:filename>')
+    def serve_storage(filename):
+        return send_from_directory(storage_dir, filename)
+
     @jwt.invalid_token_loader
     def invalid_token_callback(error):
         return {"message": "Signature verification failed", "error": f"Invalid token: {error}"}, 422
