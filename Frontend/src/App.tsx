@@ -29,6 +29,14 @@ import { WorkstationPlaceholder } from "@/pages/dashboard/WorkstationPlaceholder
 
 // Docs Pages
 import { Introduction } from "@/pages/docs/Introduction";
+import { Quickstart } from "@/pages/docs/Quickstart";
+import { Architecture } from "@/pages/docs/Architecture";
+import { Copy } from "@/pages/docs/Copy";
+import { Visual } from "@/pages/docs/Visual";
+import { Semantic } from "@/pages/docs/Semantic";
+import { Brand } from "@/pages/docs/Brand";
+import { Api } from "@/pages/docs/Api";
+import { Security } from "@/pages/docs/Security";
 import { NotFound } from "@/pages/NotFound";
 
 
@@ -69,6 +77,14 @@ function App() {
       {/* Documentation Routes */}
       <Route path="/docs" element={<DocsLayout />}>
         <Route index element={<Introduction />} />
+        <Route path="quickstart" element={<Quickstart />} />
+        <Route path="architecture" element={<Architecture />} />
+        <Route path="copy" element={<Copy />} />
+        <Route path="visual" element={<Visual />} />
+        <Route path="semantic" element={<Semantic />} />
+        <Route path="brand" element={<Brand />} />
+        <Route path="api" element={<Api />} />
+        <Route path="security" element={<Security />} />
       </Route>
 
       {/* Fallback 404 Route */}
