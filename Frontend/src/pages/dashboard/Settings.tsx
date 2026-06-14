@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import { useAuth } from "@/providers/AuthProvider";
@@ -58,22 +58,27 @@ export const Settings = () => {
   const [notifSystemUpdates, setNotifSystemUpdates] = useState(true);
 
   // Query to get user settings data
-  const { isLoading } = useQuery<SettingsData>({
+  const { data: settingsData, isLoading } = useQuery<SettingsData>({
     queryKey: ["user-account-settings", user?.id],
-    queryFn: async () => {
-      const res = await apiClient.get<SettingsData>("/api/settings/");
-      setName(res.name);
-      setEmail(res.email);
-      setTheme(res.preferences.theme);
-      setNotifContentReady(res.preferences.email_notifications.content_ready);
-      setNotifWeeklySummary(res.preferences.email_notifications.weekly_summary);
-      setNotifSystemUpdates(res.preferences.email_notifications.system_updates);
-      return res;
-    },
+    queryFn: () => apiClient.get<SettingsData>("/api/settings/"),
     enabled: !!user,
   });
 
-  const settingsData = queryClient.getQueryData<SettingsData>(["user-account-settings", user?.id]);
+  // Populate local form state when data is loaded
+  useEffect(() => {
+    if (settingsData) {
+      setName(settingsData.name || "");
+      setEmail(settingsData.email || "");
+      if (settingsData.preferences) {
+        setTheme(settingsData.preferences.theme);
+        if (settingsData.preferences.email_notifications) {
+          setNotifContentReady(settingsData.preferences.email_notifications.content_ready);
+          setNotifWeeklySummary(settingsData.preferences.email_notifications.weekly_summary);
+          setNotifSystemUpdates(settingsData.preferences.email_notifications.system_updates);
+        }
+      }
+    }
+  }, [settingsData, setTheme]);
 
   // Mutations
   const updateProfileMutation = useMutation({

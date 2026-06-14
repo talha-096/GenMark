@@ -9,6 +9,7 @@ class Config:
     MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/GenMarkDB?serverSelectionTimeoutMS=5000')
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', os.getenv('SECRET_KEY', 'default-secret-key'))
     SCHEDULER_API_ENABLED = True
+    RATELIMIT_ENABLED = False
     
     # AWS S3 Configuration
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')

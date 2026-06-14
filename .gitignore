@@ -14,6 +14,7 @@
 Backend/__pycache__/
 Backend/*.py[cod]
 Backend/*$py.class
+Backend/*.log
 Backend/.env*
 Backend/venv/
 Backend/.venv/
@@ -43,6 +44,9 @@ Frontend/.eslintcache
 Frontend/.prettiercache
 Frontend/.turbo/
 Frontend/testsprite_tests/
+Frontend/cypress/
+Frontend/cypress.config.ts
+Backend/test_profile.py
 
 # [IDE & OS]
 .vscode/

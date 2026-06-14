@@ -29,6 +29,7 @@ import { WorkstationPlaceholder } from "@/pages/dashboard/WorkstationPlaceholder
 
 // Docs Pages
 import { Introduction } from "@/pages/docs/Introduction";
+import { NotFound } from "@/pages/NotFound";
 
 
 function App() {
@@ -69,6 +70,9 @@ function App() {
       <Route path="/docs" element={<DocsLayout />}>
         <Route index element={<Introduction />} />
       </Route>
+
+      {/* Fallback 404 Route */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

@@ -157,7 +157,7 @@ def profile():
         "email": user["email"],
         "role": user.get("role", "user"),
         "subscription_plan": user.get("subscription_plan", "free"),
-        "created_at": user.get("created_at"),
+        "created_at": str(user.get("created_at")) if user.get("created_at") else None,
         "onboarding_completed": user.get("onboarding_completed", False)
     }), 200
 

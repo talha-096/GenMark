@@ -261,7 +261,57 @@ class LLMService:
         # Fallback 3: Mock response for demo mode
         return self._mock_image_generation(prompt, brand_kit)
 
-    
+    def generate_image_to_image(self, image_url, prompt, brand_kit=None):
+        """Generate a modified image based on an existing image and a text prompt"""
+        # Try Kaggle Hosted Model first
+        if self.kaggle_url:
+            enhanced_prompt = self._enhance_image_prompt(prompt, brand_kit)
+            try:
+                negative_prompt = "cartoon, anime, illustration, drawing, painting, 3d render, claymation, art, sketch, disfigured, blurry, low resolution, bad quality, oversaturated"
+                response = requests.post(
+                    f"{self.kaggle_url}/image-to-image",
+                    json={
+                        "image_url": image_url,
+                        "prompt": enhanced_prompt,
+                        "negative_prompt": negative_prompt,
+                        "strength": 0.75
+                    },
+                    timeout=120,
+                    verify=False
+                )
+                response.raise_for_status()
+                data = response.json()
+                
+                # Decode base64 to bytes
+                import base64
+                image_bytes = base64.b64decode(data["image_base64"])
+                
+                # Upload to S3 using S3Service
+                from services.s3_service import S3Service
+                s3 = S3Service()
+                import time
+                timestamp = int(time.time())
+                s3_path = f"generated/img_edit_{timestamp}.png"
+                
+                upload_success = s3.upload_file(image_bytes, s3_path, content_type="image/png")
+                if upload_success:
+                    new_image_url = s3.get_presigned_url(s3_path)
+                    return {
+                        "content": new_image_url,
+                        "model": f"kaggle-{data.get('model', 'stable-diffusion-img2img')}",
+                        "type": "image",
+                        "brand_applied": brand_kit is not None,
+                        "enhanced_prompt": enhanced_prompt,
+                        "success": True
+                    }
+                else:
+                    return {"success": False, "error": "Failed to upload Kaggle-generated image to S3"}
+            except Exception as e:
+                print(f"Kaggle Image-to-Image inference failed, falling back: {e}")
+                return {"success": False, "error": str(e)}
+
+        return {"success": False, "error": "Kaggle URL is not set. Cannot perform image-to-image editing."}
+
     def generate_image_to_text(self, image_url, prompt, brand_kit=None):
         """Analyze image and generate text description"""
         # Try Kaggle Hosted Model first

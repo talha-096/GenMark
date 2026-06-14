@@ -154,9 +154,7 @@ export const BrandKit = () => {
 
         setIsUploading(true);
         try {
-            const response = await apiClient.post<{logo_url: string}>("/api/brand/upload-logo", formData, {
-                headers: { "Content-Type": "multipart/form-data" }
-            });
+            const response = await apiClient.post<{logo_url: string}>("/api/brand/upload-logo", formData);
             setLogoUrl(response.logo_url);
             toast.success("Visual Asset Synchronized", {
                 description: "Your logo has been uploaded to the generative storage."

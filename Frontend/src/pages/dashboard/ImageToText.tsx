@@ -102,9 +102,7 @@ export const ImageToText = () => {
     formData.append("image", file);
 
     try {
-      const response = await apiClient.post<{ image_url: string }>("/api/generate/upload-image", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+      const response = await apiClient.post<{ image_url: string }>("/api/generate/upload-image", formData);
       setImageUrl(response.image_url);
       setManualUrl("");
       toast.success("Image Uploaded", { description: "Visual blueprint registered successfully." });

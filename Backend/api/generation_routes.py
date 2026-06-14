@@ -115,6 +115,46 @@ def generate_text_to_image():
     }), 200
 
 
+@generation_bp.route("/edit-image", methods=["POST"])
+@jwt_required()
+def edit_image():
+    """Edit an image using image-to-image generation"""
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    
+    if not data or not data.get("prompt") or not data.get("image_url"):
+        return jsonify({"message": "Prompt and Image URL are required"}), 400
+    
+    brand_kit, err = _resolve_brand_kit(data.get("brand_kit_id"), user_id)
+    if err:
+        return err if isinstance(err, tuple) else (err, 400)
+
+    result = llm_service.generate_image_to_image(
+        image_url=data["image_url"],
+        prompt=data["prompt"],
+        brand_kit=brand_kit
+    )
+
+    if not result.get("success"):
+        return jsonify({"message": "Generation failed", "error": result.get("error")}), 500
+
+    # Save to database
+    content_id = MarketingContent.create_content(
+        user_id=user_id,
+        title=f"Image Edit - {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}",
+        content=result.get("content", ""),
+        content_type="image",
+        brand_kit_id=data.get("brand_kit_id"),
+        prompt=data["prompt"]
+    )
+
+    return jsonify({
+        "success": True,
+        "id": str(content_id),
+        "content": result.get("content"),
+        "model": result.get("model"),
+        "brand_applied": brand_kit is not None
+    }), 200
 
 @generation_bp.route("/upload-image", methods=["POST"])
 @jwt_required()

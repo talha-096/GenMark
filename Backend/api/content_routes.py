@@ -5,6 +5,29 @@ from bson import ObjectId
 
 content_bp = Blueprint("content", __name__)
 
+def serialize_content_item(item):
+    if not item:
+        return item
+    item["_id"] = str(item["_id"])
+    item["user_id"] = str(item["user_id"])
+    if item.get("project_id"):
+        item["project_id"] = str(item["project_id"])
+    if item.get("brand_kit_id"):
+        item["brand_kit_id"] = str(item["brand_kit_id"])
+    if item.get("created_at"):
+        item["created_at"] = str(item["created_at"])
+    if item.get("updated_at"):
+        item["updated_at"] = str(item["updated_at"])
+    if "comments" in item and isinstance(item["comments"], list):
+        for comment in item["comments"]:
+            if "_id" in comment:
+                comment["_id"] = str(comment["_id"])
+            if "user_id" in comment:
+                comment["user_id"] = str(comment["user_id"])
+            if "created_at" in comment:
+                comment["created_at"] = str(comment["created_at"])
+    return item
+
 @content_bp.route("/", methods=["GET"])
 @jwt_required()
 def get_user_content():
@@ -17,15 +40,8 @@ def get_user_content():
     else:
         content_items = MarketingContent.get_by_user(user_id)
         
-    for item in content_items:
-        item["_id"] = str(item["_id"])
-        item["user_id"] = str(item["user_id"])
-        if item.get("project_id"):
-            item["project_id"] = str(item["project_id"])
-        if item.get("brand_kit_id"):
-            item["brand_kit_id"] = str(item["brand_kit_id"])
-            
-    return jsonify(content_items), 200
+    serialized_items = [serialize_content_item(item) for item in content_items]
+    return jsonify(serialized_items), 200
 
 @content_bp.route("/<content_id>", methods=["GET"])
 @jwt_required()
@@ -37,14 +53,7 @@ def get_content_details(content_id):
     if not item or str(item["user_id"]) != user_id:
         return jsonify({"message": "Content not found"}), 404
         
-    item["_id"] = str(item["_id"])
-    item["user_id"] = str(item["user_id"])
-    if item.get("project_id"):
-        item["project_id"] = str(item["project_id"])
-    if item.get("brand_kit_id"):
-        item["brand_kit_id"] = str(item["brand_kit_id"])
-        
-    return jsonify(item), 200
+    return jsonify(serialize_content_item(item)), 200
 
 @content_bp.route("/", methods=["POST"])
 @jwt_required()

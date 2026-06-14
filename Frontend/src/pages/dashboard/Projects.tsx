@@ -28,7 +28,7 @@ export const Projects = () => {
     const { data: projects = [], isLoading } = useQuery({
         queryKey: ['user-projects', user?.id],
         queryFn: async (): Promise<ProjectItem[]> => {
-            const res = await apiClient.get<ProjectResponse[]>('/api/projects');
+            const res = await apiClient.get<ProjectResponse[]>('/api/projects/');
             return res.map(p => ({
                 id: p._id,
                 name: p.name,

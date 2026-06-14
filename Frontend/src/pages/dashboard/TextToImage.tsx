@@ -18,10 +18,12 @@ import {
   Terminal,
   ChevronDown,
   Palette,
-  ShieldCheck
+  ShieldCheck,
+  Edit2
 } from "lucide-react";
 import { Button } from "@/components/shared/Button";
 import { toast } from "sonner";
+import { ImageEditModal } from "@/components/shared/ImageEditModal";
 
 interface BrandKitData {
     _id: string;
@@ -38,6 +40,7 @@ export const TextToImage = () => {
   const [progress, setProgress] = useState(0);
   const [logs, setLogs] = useState<string[]>([]);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [aspectRatio, setAspectRatio] = useState("16:9");
   const [history, setHistory] = useState<string[]>([]);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
@@ -302,6 +305,12 @@ export const TextToImage = () => {
                         <Share2 size={24} />
                      </button>
                      <button 
+                        onClick={() => setIsEditModalOpen(true)}
+                        className="p-4 rounded-full bg-glass/10 border border-glass/20 hover:bg-primary hover:text-primary-foreground transition-all"
+                     >
+                        <Edit2 size={24} />
+                     </button>
+                     <button 
                         onClick={() => toast.success("Fullscreen", { description: "Epic vision mode enabled." })}
                         className="p-4 rounded-full bg-glass/10 border border-glass/20 hover:bg-primary hover:text-primary-foreground transition-all"
                      >
@@ -357,6 +366,19 @@ export const TextToImage = () => {
          </div>
       </div>
       </div>
+      
+      {generatedImage && (
+        <ImageEditModal 
+           isOpen={isEditModalOpen}
+           onClose={() => setIsEditModalOpen(false)}
+           imageUrl={generatedImage}
+           onSave={(newUrl) => {
+              setGeneratedImage(newUrl);
+              setHistory(prev => [newUrl, ...prev.filter(u => u !== newUrl).slice(0, 3)]);
+              toast.success("Image Updated", { description: "The edited image is now your active variant." });
+           }}
+        />
+      )}
     </div>
   );
 };
