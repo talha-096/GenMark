@@ -11,11 +11,17 @@ def create_app(config_name='default'):
     jwt.init_app(app)
     
     # Configure CORS to be very permissive for local development
-    cors.init_app(app, resources={r"/api/*": {
-        "origins": "*",
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
-    }})
+    cors.init_app(app, resources={
+        r"/api/*": {
+            "origins": "*",
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"]
+        },
+        r"/storage/*": {
+            "origins": "*",
+            "methods": ["GET", "OPTIONS"]
+        }
+    })
     
     limiter.init_app(app)
     swagger.init_app(app)

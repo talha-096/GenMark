@@ -161,16 +161,10 @@ class LLMService:
                 import base64
                 image_bytes = base64.b64decode(data["image_base64"])
                 
-                # Upload to S3 using S3Service
-                from services.s3_service import S3Service
-                s3 = S3Service()
-                import time
-                timestamp = int(time.time())
-                s3_path = f"generated/img_{timestamp}.png"
                 
-                upload_success = s3.upload_file(image_bytes, s3_path, content_type="image/png")
-                if upload_success:
-                    image_url = s3.get_presigned_url(s3_path)
+                # Save image (S3 or local storage)
+                image_url = self._save_image_bytes(image_bytes, "img")
+                if image_url:
                     return {
                         "image_url": image_url,
                         "model": f"kaggle-{data.get('model', 'stable-diffusion')}",
@@ -179,7 +173,7 @@ class LLMService:
                         "enhanced_prompt": enhanced_prompt
                     }
                 else:
-                    print("Failed to upload Kaggle-generated image to S3, falling back...")
+                    print("Failed to save Kaggle-generated image, falling back...")
             except Exception as e:
                 print(f"Kaggle Text-to-Image inference failed, falling back: {e}")
 
@@ -210,15 +204,10 @@ class LLMService:
                 response.raise_for_status()
                 image_bytes = response.content
                 
-                # Upload to S3 using S3Service
-                from services.s3_service import S3Service
-                s3 = S3Service()
-                timestamp = int(time.time())
-                s3_path = f"generated/img_{timestamp}.png"
                 
-                upload_success = s3.upload_file(image_bytes, s3_path, content_type="image/png")
-                if upload_success:
-                    image_url = s3.get_presigned_url(s3_path)
+                # Save image (S3 or local storage)
+                image_url = self._save_image_bytes(image_bytes, "img")
+                if image_url:
                     return {
                         "image_url": image_url,
                         "model": "realistic-vision-v5.1-hf",
@@ -227,7 +216,7 @@ class LLMService:
                         "enhanced_prompt": enhanced_prompt
                     }
                 else:
-                    return {"error": "Failed to upload generated image to S3"}
+                    return {"error": "Failed to save generated image"}
             except Exception as e:
                 print(f"Hugging Face Text-to-Image inference failed: {e}")
 
@@ -286,16 +275,10 @@ class LLMService:
                 import base64
                 image_bytes = base64.b64decode(data["image_base64"])
                 
-                # Upload to S3 using S3Service
-                from services.s3_service import S3Service
-                s3 = S3Service()
-                import time
-                timestamp = int(time.time())
-                s3_path = f"generated/img_edit_{timestamp}.png"
                 
-                upload_success = s3.upload_file(image_bytes, s3_path, content_type="image/png")
-                if upload_success:
-                    new_image_url = s3.get_presigned_url(s3_path)
+                # Save image (S3 or local storage)
+                new_image_url = self._save_image_bytes(image_bytes, "img_edit")
+                if new_image_url:
                     return {
                         "content": new_image_url,
                         "model": f"kaggle-{data.get('model', 'stable-diffusion-img2img')}",
@@ -305,7 +288,7 @@ class LLMService:
                         "success": True
                     }
                 else:
-                    return {"success": False, "error": "Failed to upload Kaggle-generated image to S3"}
+                    return {"success": False, "error": "Failed to save Kaggle-generated image"}
             except Exception as e:
                 print(f"Kaggle Image-to-Image inference failed, falling back: {e}")
                 return {"success": False, "error": str(e)}
@@ -314,15 +297,42 @@ class LLMService:
 
     def generate_image_to_text(self, image_url, prompt, brand_kit=None):
         """Analyze image and generate text description"""
+        
+        # Read the image bytes locally in case remote APIs (Kaggle) cannot access the local URL
+        import requests
+        try:
+            img_response = requests.get(image_url)
+            img_response.raise_for_status()
+            img_data = img_response.content
+            import base64
+            img_base64 = base64.b64encode(img_data).decode('utf-8')
+        except Exception as e:
+            print(f"Failed to fetch image locally for image-to-text: {e}")
+            img_data = None
+            img_base64 = None
+
+        # Format prompt for Florence-2
+        # If user provided a specific question/prompt, use VQA task format. Otherwise default to DETAILED_CAPTION
+        if prompt and not prompt.startswith("<"):
+            formatted_prompt = f"<VQA> {prompt}"
+        else:
+            formatted_prompt = prompt if prompt else "<DETAILED_CAPTION>"
+
         # Try Kaggle Hosted Model first
         if self.kaggle_url:
             try:
+                payload = {
+                    "image_url": image_url,
+                    "prompt": formatted_prompt
+                }
+                
+                # Send base64 so Kaggle doesn't have to fetch the local URL
+                if img_base64:
+                    payload["image_base64"] = img_base64
+
                 response = requests.post(
                     f"{self.kaggle_url}/image-to-text",
-                    json={
-                        "image_url": image_url,
-                        "prompt": prompt if prompt.startswith("<") else "<DETAILED_CAPTION>"
-                    },
+                    json=payload,
                     timeout=90,
                     verify=False
                 )
@@ -338,20 +348,14 @@ class LLMService:
                 print(f"Kaggle Image-to-Text inference failed, falling back: {e}")
 
         # Fallback 1: Hugging Face Serverless API (Free Florence-2)
-        if self.hf_token:
+        if self.hf_token and img_data:
             api_url = "https://api-inference.huggingface.co/models/microsoft/Florence-2-large"
             headers = {"Authorization": f"Bearer {self.hf_token}"}
             
             try:
-                img_response = requests.get(image_url)
-                img_response.raise_for_status()
-                img_data = img_response.content
-                
-                # Florence-2 tasks are prompt-driven, e.g. "<DETAILED_CAPTION>"
-                task = prompt if prompt in ["<CAPTION>", "<DETAILED_CAPTION>", "<MORE_DETAILED_CAPTION>"] else "<DETAILED_CAPTION>"
                 payload = {
                     "inputs": img_data,
-                    "parameters": {"candidate_labels": [task]}
+                    "parameters": {"candidate_labels": [formatted_prompt]}
                 }
                 
                 response = requests.post(api_url, headers=headers, json=payload)
@@ -400,6 +404,40 @@ class LLMService:
         # Fallback 3: Mock response for demo mode
         return self._mock_image_analysis(image_url, prompt, brand_kit)
     
+    def _save_image_bytes(self, image_bytes, filename_prefix="img"):
+        """Save image bytes to S3 or local storage, return URL"""
+        from services.s3_service import S3Service
+        import time
+        import os
+        from flask import current_app, request
+        
+        s3 = S3Service()
+        timestamp = int(time.time())
+        filename = f"{filename_prefix}_{timestamp}.png"
+        s3_path = f"generated/{filename}"
+        
+        try:
+            if s3.access_key and s3.secret_key and s3.bucket_name:
+                upload_success = s3.upload_file(image_bytes, s3_path, content_type="image/png")
+                if upload_success:
+                    return s3.get_presigned_url(s3_path)
+        except Exception as e:
+            print(f"S3 upload failed: {e}")
+            
+        # Fallback to local storage
+        try:
+            local_storage_dir = os.path.join(current_app.root_path, 'storage')
+            os.makedirs(local_storage_dir, exist_ok=True)
+            local_filepath = os.path.join(local_storage_dir, filename)
+            
+            with open(local_filepath, "wb") as f:
+                f.write(image_bytes)
+                
+            return f"{request.scheme}://{request.host}/storage/{filename}"
+        except Exception as e:
+            print(f"Local storage fallback failed: {e}")
+            return None
+
     def _build_brand_context(self, brand_kit, content_type="text"):
         """Build system prompt with strict brand-kit-based context enforcement.
         
