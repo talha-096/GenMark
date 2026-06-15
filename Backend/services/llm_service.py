@@ -252,19 +252,36 @@ class LLMService:
 
     def generate_image_to_image(self, image_url, prompt, brand_kit=None):
         """Generate a modified image based on an existing image and a text prompt"""
+        # Read the image bytes locally in case remote APIs (Kaggle) cannot access the local URL
+        import requests
+        try:
+            img_response = requests.get(image_url)
+            img_response.raise_for_status()
+            img_data = img_response.content
+            import base64
+            img_base64 = base64.b64encode(img_data).decode('utf-8')
+        except Exception as e:
+            print(f"Failed to fetch image locally for image-to-image: {e}")
+            img_base64 = None
+
         # Try Kaggle Hosted Model first
         if self.kaggle_url:
             enhanced_prompt = self._enhance_image_prompt(prompt, brand_kit)
             try:
                 negative_prompt = "cartoon, anime, illustration, drawing, painting, 3d render, claymation, art, sketch, disfigured, blurry, low resolution, bad quality, oversaturated"
+                payload = {
+                    "image_url": image_url,
+                    "prompt": enhanced_prompt,
+                    "negative_prompt": negative_prompt,
+                    "strength": 0.75
+                }
+                
+                if img_base64:
+                    payload["image_base64"] = img_base64
+
                 response = requests.post(
                     f"{self.kaggle_url}/image-to-image",
-                    json={
-                        "image_url": image_url,
-                        "prompt": enhanced_prompt,
-                        "negative_prompt": negative_prompt,
-                        "strength": 0.75
-                    },
+                    json=payload,
                     timeout=120,
                     verify=False
                 )
