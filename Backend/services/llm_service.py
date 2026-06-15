@@ -362,64 +362,11 @@ class LLMService:
                     "brand_applied": brand_kit is not None
                 }
             except Exception as e:
-                print(f"Kaggle Image-to-Text inference failed, falling back: {e}")
+                error_msg = f"Image-to-Text inference failed: {e}"
+                print(error_msg)
+                return {"error": error_msg}
 
-        # Fallback 1: Hugging Face Serverless API (Free Florence-2)
-        if self.hf_token and img_data:
-            api_url = "https://api-inference.huggingface.co/models/microsoft/Florence-2-large"
-            headers = {"Authorization": f"Bearer {self.hf_token}"}
-            
-            try:
-                payload = {
-                    "inputs": img_data,
-                    "parameters": {"candidate_labels": [formatted_prompt]}
-                }
-                
-                response = requests.post(api_url, headers=headers, json=payload)
-                response.raise_for_status()
-                result = response.json()
-                
-                # Extract generated text from Florence-2 output structure
-                caption = result[0].get("generated_text", "Image analysis complete.") if isinstance(result, list) else str(result)
-                
-                return {
-                    "content": caption,
-                    "model": "florence-2-large-hf",
-                    "type": "text",
-                    "brand_applied": brand_kit is not None
-                }
-            except Exception as e:
-                print(f"Hugging Face Image-to-Text inference failed: {e}")
-
-        # Fallback 2: OpenAI API (Paid)
-        if self.client:
-            system_prompt = self._build_brand_context(brand_kit, "image_analysis")
-            try:
-                response = self.client.chat.completions.create(
-                    model="gpt-4-vision-preview",
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": prompt},
-                                {"type": "image_url", "image_url": {"url": image_url}}
-                            ]
-                        }
-                    ],
-                    max_tokens=500
-                )
-                return {
-                    "content": response.choices[0].message.content,
-                    "model": "gpt-4-vision",
-                    "type": "text",
-                    "brand_applied": brand_kit is not None
-                }
-            except Exception as e:
-                return {"error": str(e)}
-        
-        # Fallback 3: Mock response for demo mode
-        return self._mock_image_analysis(image_url, prompt, brand_kit)
+        return {"error": "KAGGLE_MODEL_URL is not configured in your .env file. Please check your model server."}
     
     def _save_image_bytes(self, image_bytes, filename_prefix="img"):
         """Save image bytes to S3 or local storage, return URL"""
