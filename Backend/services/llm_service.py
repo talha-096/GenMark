@@ -714,7 +714,7 @@ The content you produce must:
             
         system_prompt = self._build_brand_context(brand_kit, content_type)
         # Use Mistral's instruction format: [INST] system \n user [/INST]
-        full_prompt = f"[INST] {system_prompt}\n\n{prompt} [/INST]"
+        full_prompt = f"[INST] {system_prompt}\n\nUser Request:\n{prompt}\n\nWrite the final {content_type} content now. Do not include rules, lists, or preamble. [/INST]"
         
         try:
             output = llm(
@@ -742,7 +742,7 @@ The content you produce must:
         system_prompt = self._build_brand_context(brand_kit, content_type)
         
         # Use Mistral's instruction format: [INST] system \n user [/INST]
-        formatted_prompt = f"[INST] {system_prompt}\n\n{prompt} [/INST]"
+        formatted_prompt = f"[INST] {system_prompt}\n\nUser Request:\n{prompt}\n\nWrite the final {content_type} content now. Do not include rules, lists, or preamble. [/INST]"
         
         try:
             outputs = pipe(
