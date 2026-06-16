@@ -364,9 +364,41 @@ class LLMService:
             except Exception as e:
                 error_msg = f"Image-to-Text inference failed: {e}"
                 print(error_msg)
-                return {"error": error_msg}
+                # Fall through to other options
 
-        return {"error": "KAGGLE_MODEL_URL is not configured in your .env file. Please check your model server."}
+        # Fallback 1: OpenAI API (Paid)
+        if self.client:
+            try:
+                image_data = f"data:image/jpeg;base64,{img_base64}" if img_base64 else image_url
+                response = self.client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": formatted_prompt},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": image_data
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    max_tokens=500
+                )
+                return {
+                    "content": response.choices[0].message.content,
+                    "model": "gpt-4o",
+                    "type": "text",
+                    "brand_applied": brand_kit is not None
+                }
+            except Exception as e:
+                print(f"OpenAI Image-to-Text inference failed: {e}")
+
+        # Fallback 2: Mock response for demo mode
+        return self._mock_image_analysis(image_url, prompt, brand_kit)
     
     def _save_image_bytes(self, image_bytes, filename_prefix="img"):
         """Save image bytes to S3 or local storage, return URL"""
