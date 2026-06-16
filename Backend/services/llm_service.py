@@ -741,9 +741,8 @@ The content you produce must:
             
         system_prompt = self._build_brand_context(brand_kit, content_type)
         
-        # Determine model type for formatting
-        # For marketing models, usually a simple instruction format works
-        formatted_prompt = f"System: {system_prompt}\n\nUser: {prompt}\n\nAssistant:"
+        # Use Mistral's instruction format: [INST] system \n user [/INST]
+        formatted_prompt = f"[INST] {system_prompt}\n\n{prompt} [/INST]"
         
         try:
             outputs = pipe(
@@ -751,13 +750,22 @@ The content you produce must:
                 do_sample=True,
                 temperature=0.7,
                 top_k=50,
-                top_p=0.95
+                top_p=0.95,
+                return_full_text=False
             )
             
             generated_text = outputs[0]['generated_text']
-            # Clean up the output to only return the assistant's part
-            if "Assistant:" in generated_text:
-                generated_text = generated_text.split("Assistant:")[-1].strip()
+            
+            # Clean up the output to only return the generated part if prompt is still included
+            if generated_text.startswith(formatted_prompt):
+                generated_text = generated_text[len(formatted_prompt):].strip()
+            elif "[INST]" in generated_text and "[/INST]" in generated_text:
+                generated_text = generated_text.split("[/INST]")[-1].strip()
+                
+            # Remove any trailing stop tokens
+            for stop_word in ["<end_of_turn>", "<start_of_turn>", "</start_of_turn>", "<bos>", "<eos>"]:
+                if stop_word in generated_text:
+                    generated_text = generated_text.split(stop_word)[0].strip()
             
             return {
                 "content": generated_text,
