@@ -188,44 +188,7 @@ class LLMService:
         elif aspect_ratio == "9:16":
             width, height = 432, 768
 
-        # Try direct Gemini Imagen 3 API first (Free, High-Quality)
-        if self.gemini_client and genai_types:
-            enhanced_prompt = self._enhance_image_prompt(prompt, brand_kit)
-            try:
-                response = self.gemini_client.models.generate_images(
-                    model='imagen-3.0-generate-002',
-                    prompt=enhanced_prompt,
-                    config=genai_types.GenerateImagesConfig(
-                        number_of_images=1,
-                        output_mime_type='image/png',
-                        aspect_ratio=aspect_ratio
-                    )
-                )
-                if response.generated_images and len(response.generated_images) > 0:
-                    image = response.generated_images[0].image
-                    # Convert to bytes
-                    buf = io.BytesIO()
-                    image.save(buf, format='PNG')
-                    image_bytes = buf.getvalue()
-                    
-                    # Save image (S3 or local storage)
-                    image_url = self._save_image_bytes(image_bytes, "img")
-                    if image_url:
-                        return {
-                            "image_url": image_url,
-                            "model": "imagen-3.0-generate-002",
-                            "type": "image",
-                            "brand_applied": brand_kit is not None,
-                            "enhanced_prompt": enhanced_prompt
-                        }
-                    else:
-                        print("Failed to save Gemini-generated image, falling back...")
-                else:
-                    print("Gemini Imagen returned no images, falling back...")
-            except Exception as e:
-                print(f"Direct Gemini Imagen 3 failed, falling back: {e}")
-
-        # Try Kaggle Hosted Model
+        # Try Kaggle Hosted Model (primary provider for image generation)
         if self.kaggle_url:
             enhanced_prompt = self._enhance_image_prompt(prompt, brand_kit)
             try:
@@ -349,61 +312,7 @@ class LLMService:
             img_data = None
             img_base64 = None
 
-        # Try direct Gemini API first (describe original → generate modified)
-        if self.gemini_client and genai_types and img_data:
-            enhanced_prompt = self._enhance_image_prompt(prompt, brand_kit)
-            try:
-                from PIL import Image as PILImage
-                original_image = PILImage.open(io.BytesIO(img_data)).convert('RGB')
-                
-                # Step 1: Use Gemini to describe the original image
-                describe_prompt = (
-                    "Describe this image in detail, including layout, objects, colors, and style, "
-                    "so that a text-to-image model can recreate a similar visual."
-                )
-                desc_response = self.gemini_client.models.generate_content(
-                    model='gemini-2.5-flash-lite',
-                    contents=[original_image, describe_prompt]
-                )
-                image_description = desc_response.text
-
-                # Step 2: Merge description + user edit instruction
-                merged_prompt = (
-                    f"Based on this image description: '{image_description}'. "
-                    f"Modify the image according to this instruction: '{enhanced_prompt}'. "
-                    "Produce a high-quality, professional marketing visual."
-                )
-
-                # Step 3: Generate the modified image using Imagen 3
-                gen_response = self.gemini_client.models.generate_images(
-                    model='imagen-3.0-generate-002',
-                    prompt=merged_prompt,
-                    config=genai_types.GenerateImagesConfig(
-                        number_of_images=1,
-                        output_mime_type='image/png',
-                        aspect_ratio='1:1'
-                    )
-                )
-                if gen_response.generated_images and len(gen_response.generated_images) > 0:
-                    image = gen_response.generated_images[0].image
-                    buf = io.BytesIO()
-                    image.save(buf, format='PNG')
-                    image_bytes = buf.getvalue()
-                    
-                    new_image_url = self._save_image_bytes(image_bytes, "img_edit")
-                    if new_image_url:
-                        return {
-                            "content": new_image_url,
-                            "model": "gemini-imagen-3.0",
-                            "type": "image",
-                            "brand_applied": brand_kit is not None,
-                            "enhanced_prompt": enhanced_prompt,
-                            "success": True
-                        }
-            except Exception as e:
-                print(f"Direct Gemini image-to-image failed, falling back: {e}")
-
-        # Try Kaggle Hosted Model
+        # Try Kaggle Hosted Model (primary provider for image editing)
         if self.kaggle_url:
             enhanced_prompt = self._enhance_image_prompt(prompt, brand_kit)
             try:
