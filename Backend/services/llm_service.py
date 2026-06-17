@@ -26,6 +26,7 @@ class LLMService:
         # Serverless API tokens
         self.hf_token = os.getenv("HF_TOKEN")
         self.groq_api_key = os.getenv("GROQ_API_KEY")
+        self.gemini_key = os.getenv("GEMINI_API_KEY", "AIzaSyDr94kmVSicb0EPvKgceDXgXv6p4xasNWo")
         
         # Local LLM Support
         self.local_llm = None
@@ -36,6 +37,37 @@ class LLMService:
     
     def generate_text_to_text(self, prompt, brand_kit=None, content_type="text"):
         """Generate text content from text prompt"""
+        # Try direct Gemini API first (Free, High-Performance, and Brand-aligned)
+        if self.gemini_key:
+            system_prompt = self._build_brand_context(brand_kit, content_type)
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={self.gemini_key}"
+            headers = {"Content-Type": "application/json"}
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "systemInstruction": {"parts": [{"text": system_prompt}]},
+                "generationConfig": {
+                    "temperature": 0.7,
+                    "maxOutputTokens": 1000
+                }
+            }
+            try:
+                response = requests.post(url, json=payload, headers=headers, timeout=25)
+                if response.status_code == 200:
+                    res_data = response.json()
+                    if "candidates" in res_data and len(res_data["candidates"]) > 0:
+                        candidate = res_data["candidates"][0]
+                        if "content" in candidate and "parts" in candidate["content"]:
+                            generated_text = candidate["content"]["parts"][0]["text"].strip()
+                            return {
+                                "content": generated_text,
+                                "model": "gemini-2.5-flash-lite",
+                                "type": "text",
+                                "brand_applied": brand_kit is not None
+                            }
+                print(f"Direct Gemini API failed with status {response.status_code}: {response.text}, falling back...")
+            except Exception as e:
+                print(f"Direct Gemini API call failed: {e}, falling back...")
+
         # Try Kaggle Hosted Model first
         if self.kaggle_url:
             system_prompt = self._build_brand_context(brand_kit, content_type)
@@ -333,6 +365,67 @@ class LLMService:
             formatted_prompt = f"<VQA> {prompt}"
         else:
             formatted_prompt = prompt if prompt else "<DETAILED_CAPTION>"
+
+        # Try direct Gemini Multimodal API first (Free, High-Performance, and Offline-independent)
+        if self.gemini_key and img_base64:
+            # Map Florence-2 tags to user-friendly Gemini prompts
+            gemini_prompt = "Describe this image in detail."
+            task = formatted_prompt
+            if task == '<CAPTION>':
+                gemini_prompt = "Provide a short, concise, one-sentence caption for this image."
+            elif task == '<DETAILED_CAPTION>':
+                gemini_prompt = "Provide a detailed description of this image."
+            elif task == '<MORE_DETAILED_CAPTION>':
+                gemini_prompt = "Provide a highly detailed, comprehensive description of everything in this image."
+            elif task in ['<OCR>', '<OCR_WITH_REGION>']:
+                gemini_prompt = "Extract and write all text visible in this image."
+            elif task in ['<OD>', '<REGION_PROPOSAL>']:
+                gemini_prompt = "List all key objects visible in this image and their approximate locations."
+            elif task == '<DENSE_REGION_CAPTION>':
+                gemini_prompt = "Identify and describe the different regions and components of this image."
+            elif task.startswith('<VQA>'):
+                gemini_prompt = task.replace('<VQA>', '').strip()
+            elif prompt:
+                gemini_prompt = prompt
+
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={self.gemini_key}"
+            headers = {"Content-Type": "application/json"}
+            payload = {
+                "contents": [{
+                    "parts": [
+                        {
+                            "inlineData": {
+                                "mimeType": "image/png",
+                                "data": img_base64
+                            }
+                        },
+                        {
+                            "text": gemini_prompt
+                        }
+                    ]
+                }],
+                "generationConfig": {
+                    "temperature": 0.4,
+                    "maxOutputTokens": 1000
+                }
+            }
+            try:
+                response = requests.post(url, json=payload, headers=headers, timeout=25)
+                if response.status_code == 200:
+                    res_data = response.json()
+                    if "candidates" in res_data and len(res_data["candidates"]) > 0:
+                        candidate = res_data["candidates"][0]
+                        if "content" in candidate and "parts" in candidate["content"]:
+                            generated_text = candidate["content"]["parts"][0]["text"].strip()
+                            return {
+                                "content": generated_text,
+                                "model": "gemini-2.5-flash-lite",
+                                "type": "text",
+                                "brand_applied": brand_kit is not None
+                            }
+                print(f"Direct Gemini multimodal API failed with status {response.status_code}: {response.text}, falling back...")
+            except Exception as e:
+                print(f"Direct Gemini multimodal API call failed: {e}, falling back...")
 
         # Try Kaggle Hosted Model first
         if self.kaggle_url:

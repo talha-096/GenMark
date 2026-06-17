@@ -49,7 +49,7 @@ def health():
     return jsonify({
         'status': 'ok', 
         'device': 'cloud-gemini', 
-        'models': ['gemini-2.5-flash', 'imagen-3.0-generate-002']
+        'models': ['gemini-2.5-flash-lite', 'imagen-3.0-generate-002']
     })
 
 @app.route('/generate-text', methods=['POST'])
@@ -65,7 +65,7 @@ def generate_text():
 
     try:
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.5-flash-lite',
             contents=prompt,
             config=types.GenerateContentConfig(
                 system_instruction=system_prompt,
@@ -73,7 +73,7 @@ def generate_text():
                 max_output_tokens=max_tokens
             )
         )
-        return jsonify({'content': response.text, 'model': 'gemini-2.5-flash'})
+        return jsonify({'content': response.text, 'model': 'gemini-2.5-flash-lite'})
     except Exception as e:
         import traceback; print(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
@@ -151,7 +151,7 @@ def image_to_image():
             "so that a text-to-image model can recreate a similar visual."
         )
         desc_response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.5-flash-lite',
             contents=[init_image, describe_prompt]
         )
         image_description = desc_response.text
@@ -222,11 +222,11 @@ def image_to_text():
             image = Image.open(io.BytesIO(resp.content)).convert('RGB')
 
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.5-flash-lite',
             contents=[image, gemini_prompt]
         )
         
-        return jsonify({'content': response.text, 'model': 'gemini-2.5-flash'})
+        return jsonify({'content': response.text, 'model': 'gemini-2.5-flash-lite'})
     except Exception as e:
         import traceback; print(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
