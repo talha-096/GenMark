@@ -26,7 +26,7 @@ class LLMService:
         # Serverless API tokens
         self.hf_token = os.getenv("HF_TOKEN")
         self.groq_api_key = os.getenv("GROQ_API_KEY")
-        self.gemini_key = os.getenv("GEMINI_API_KEY", "AIzaSyDr94kmVSicb0EPvKgceDXgXv6p4xasNWo")
+        self.gemini_key = os.getenv("GEMINI_API_KEY", "")
         
         # Local LLM Support
         self.local_llm = None

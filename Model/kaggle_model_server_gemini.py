@@ -22,8 +22,22 @@ except ImportError:
 # ==========================================
 # STEP 1: CONFIGURATION & CREDENTIALS
 # ==========================================
-# Setup Gemini API key
-GEMINI_API_KEY = "AIzaSyDr94kmVSicb0EPvKgceDXgXv6p4xasNWo"
+# Setup Gemini API key — NEVER hardcode, always use Kaggle Secrets or env var
+try:
+    from kaggle_secrets import UserSecretsClient
+    _secrets = UserSecretsClient()
+    GEMINI_API_KEY = _secrets.get_secret('GEMINI_API_KEY')
+    print("[OK] Gemini API key loaded from Kaggle Secrets")
+except Exception:
+    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+    if GEMINI_API_KEY:
+        print("[OK] Gemini API key loaded from environment variable")
+    else:
+        print("[ERROR] No Gemini API key found! Add 'GEMINI_API_KEY' to Kaggle Secrets.")
+
+if not GEMINI_API_KEY:
+    raise RuntimeError("GEMINI_API_KEY is required. Add it to Kaggle Secrets (recommended) or set as env var.")
+
 client = genai.Client(api_key=GEMINI_API_KEY)
 print("[OK] Gemini API Client initialized successfully!")
 
