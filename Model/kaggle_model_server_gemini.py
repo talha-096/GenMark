@@ -1,15 +1,18 @@
 import os
 import io
 import base64
+import glob
 import threading
 import time
 from PIL import Image
 import requests as req_lib
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import torch
+import torch.nn as nn
 from pyngrok import ngrok, conf
 
-# Install google-genai package automatically if not present
+# Install google-genai if not present
 try:
     from google import genai
     from google.genai import types
@@ -22,7 +25,8 @@ except ImportError:
 # ==========================================
 # STEP 1: CONFIGURATION & CREDENTIALS
 # ==========================================
-# Setup Gemini API key — NEVER hardcode, always use Kaggle Secrets or env var
+
+# Setup Gemini API key — from Kaggle Secrets or env var (NEVER hardcoded)
 try:
     from kaggle_secrets import UserSecretsClient
     _secrets = UserSecretsClient()
@@ -36,24 +40,206 @@ except Exception:
         print("[ERROR] No Gemini API key found! Add 'GEMINI_API_KEY' to Kaggle Secrets.")
 
 if not GEMINI_API_KEY:
-    raise RuntimeError("GEMINI_API_KEY is required. Add it to Kaggle Secrets (recommended) or set as env var.")
+    raise RuntimeError("GEMINI_API_KEY is required. Add it to Kaggle Secrets.")
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 print("[OK] Gemini API Client initialized successfully!")
 
 # Setup Ngrok Auth Token
 try:
-    from kaggle_secrets import UserSecretsClient
-    secrets = UserSecretsClient()
-    NGROK_TOKEN = secrets.get_secret('NGROK_AUTH_TOKEN')
+    NGROK_TOKEN = _secrets.get_secret('NGROK_AUTH_TOKEN')
     print('[OK] ngrok token loaded from Kaggle Secrets')
 except Exception:
-    # Hardcoded fallback
     NGROK_TOKEN = '3BnR5jH3mHvw2BcS28rTHldeEPz_6dsDVyQEUxsbLtA4DLe1m'
     print('[WARN] Using hardcoded ngrok token -- use Kaggle Secrets in production!')
 
+# ── Auto-Detect Dataset base path ──────
+possible_bases = [
+    '/kaggle/input/genmark-local-models',
+    '/kaggle/input/datasets/talha096/genmark-local-models',
+]
+
+DATASET_BASE = None
+for base in possible_bases:
+    if os.path.exists(os.path.join(base, 'Text to image Model')):
+        DATASET_BASE = base
+        break
+
+if DATASET_BASE is None:
+    matches = glob.glob('/kaggle/input/**/Text to image Model', recursive=True)
+    if matches:
+        DATASET_BASE = os.path.dirname(matches[0])
+        print(f'[OK] Auto-detected dataset base path: {DATASET_BASE}')
+    else:
+        DATASET_BASE = '/kaggle/input/datasets/talha096/genmark-local-models'
+        print(f'[WARN] Could not auto-detect dataset. Falling back to: {DATASET_BASE}')
+else:
+    print(f'[OK] Resolved dataset base path: {DATASET_BASE}')
+
+TEXT_TO_IMAGE_PATH = os.path.join(DATASET_BASE, 'Text to image Model')
+IMAGE_TO_TEXT_PATH = os.path.join(DATASET_BASE, 'Image to text Model')
+
+print(f'Text-to-Image (local) → {TEXT_TO_IMAGE_PATH}')
+print(f'Image-to-Text (local) → {IMAGE_TO_TEXT_PATH}')
+print(f'Text-to-Text           → Gemini API (no local model needed)')
+
 # ==========================================
-# STEP 2: FLASK WEB SERVER
+# STEP 2: PATCHES (for model compatibility)
+# ==========================================
+nn.Module._supports_sdpa = False
+
+if not hasattr(torch, '_is_linspace_patched'):
+    old_linspace = torch.linspace
+    def patched_linspace(*args, **kwargs):
+        if kwargs.get('device') is None or kwargs.get('device') == 'meta':
+            kwargs['device'] = 'cpu'
+        return old_linspace(*args, **kwargs)
+    torch.linspace = patched_linspace
+    torch._is_linspace_patched = True
+
+import transformers
+from transformers import PreTrainedTokenizerBase
+try:
+    from transformers import PreTrainedTokenizerFast
+except ImportError:
+    PreTrainedTokenizerFast = None
+
+def safe_additional_special_tokens(self):
+    try:
+        if hasattr(self, '_tokenizer') and hasattr(self._tokenizer, 'additional_special_tokens'):
+            return self._tokenizer.additional_special_tokens
+    except Exception:
+        pass
+    return getattr(self, '_additional_special_tokens', [])
+
+PreTrainedTokenizerBase.additional_special_tokens = property(safe_additional_special_tokens)
+if PreTrainedTokenizerFast is not None:
+    PreTrainedTokenizerFast.additional_special_tokens = property(safe_additional_special_tokens)
+
+from transformers.configuration_utils import PretrainedConfig
+PretrainedConfig.forced_bos_token_id = None
+
+try:
+    from transformers.modeling_utils import PreTrainedModel
+    PreTrainedModel._supports_sdpa = False
+except Exception:
+    pass
+
+import transformers.dynamic_module_utils as dynamic_utils
+if hasattr(dynamic_utils, 'get_class_from_dynamic_module') and not hasattr(dynamic_utils, '_is_class_loader_patched'):
+    old_get_class = dynamic_utils.get_class_from_dynamic_module
+    def patched_get_class(*args, **kwargs):
+        cls = old_get_class(*args, **kwargs)
+        if cls.__name__ == 'Florence2Processor':
+            old_init = cls.__init__
+            def new_init(self, *iargs, **ikwargs):
+                valid_kwargs = {}
+                if 'image_processor' in ikwargs:
+                    valid_kwargs['image_processor'] = ikwargs['image_processor']
+                if 'tokenizer' in ikwargs:
+                    valid_kwargs['tokenizer'] = ikwargs['tokenizer']
+                return old_init(self, *iargs, **valid_kwargs)
+            cls.__init__ = new_init
+        elif cls.__name__ == 'Florence2ForConditionalGeneration':
+            cls._supports_sdpa = False
+        return cls
+    dynamic_utils.get_class_from_dynamic_module = patched_get_class
+    dynamic_utils._is_class_loader_patched = True
+
+def patch_tokenizers_backend(cls, visited=None):
+    if visited is None:
+        visited = set()
+    if cls in visited:
+        return
+    visited.add(cls)
+    if 'TokenizersBackend' in cls.__name__:
+        try:
+            cls.additional_special_tokens = property(safe_additional_special_tokens)
+        except Exception:
+            pass
+    try:
+        subclasses = cls.__subclasses__()
+    except Exception:
+        subclasses = []
+    for sub in subclasses:
+        patch_tokenizers_backend(sub, visited)
+
+try:
+    patch_tokenizers_backend(object)
+except Exception:
+    pass
+
+# ==========================================
+# STEP 3: LOAD LOCAL MODELS (Images only)
+# ==========================================
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+DTYPE  = torch.float16 if torch.cuda.is_available() else torch.float32
+print(f'\n[INFO] Device: {DEVICE} | Dtype: {DTYPE}')
+
+from transformers import AutoModelForCausalLM, AutoProcessor
+from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline, DPMSolverMultistepScheduler
+
+# ── Text-to-Text: SKIPPED (handled by Gemini API) ──
+print('[SKIP] Text-to-Text model NOT loaded (Gemini API handles text generation)')
+
+# ── Text-to-Image: Stable Diffusion ──
+print('\n[LOAD] Loading Text-to-Image (Stable Diffusion)...')
+sd_pipeline = StableDiffusionPipeline.from_pretrained(
+    TEXT_TO_IMAGE_PATH,
+    torch_dtype=DTYPE,
+    safety_checker=None
+)
+config_dict = dict(sd_pipeline.scheduler.config)
+for key in ["algorithm_type", "solver_type", "final_sigmas_type"]:
+    config_dict.pop(key, None)
+sd_pipeline.scheduler = DPMSolverMultistepScheduler.from_config(config_dict, use_karras_sigmas=True)
+sd_pipeline = sd_pipeline.to(DEVICE)
+sd_pipeline.enable_attention_slicing()
+
+# ── Image-to-Image: reuse Stable Diffusion components ──
+print('\n[LOAD] Creating Image-to-Image Pipeline...')
+try:
+    sd_img2img_pipeline = StableDiffusionImg2ImgPipeline(**sd_pipeline.components).to(DEVICE)
+except Exception:
+    sd_img2img_pipeline = StableDiffusionImg2ImgPipeline(
+        vae=sd_pipeline.vae,
+        text_encoder=sd_pipeline.text_encoder,
+        tokenizer=sd_pipeline.tokenizer,
+        unet=sd_pipeline.unet,
+        scheduler=sd_pipeline.scheduler,
+        safety_checker=None,
+        feature_extractor=None,
+        requires_safety_checker=False
+    ).to(DEVICE)
+sd_img2img_pipeline.enable_attention_slicing()
+print('[OK] Text-to-Image & Image-to-Image pipelines loaded!')
+
+# ── Image-to-Text: Florence-2 ──
+print('\n[LOAD] Loading Image-to-Text (Florence-2)...')
+try:
+    patch_tokenizers_backend(object)
+except Exception:
+    pass
+florence_processor = AutoProcessor.from_pretrained(IMAGE_TO_TEXT_PATH, trust_remote_code=True)
+florence_model = AutoModelForCausalLM.from_pretrained(
+    IMAGE_TO_TEXT_PATH,
+    torch_dtype=DTYPE,
+    trust_remote_code=True,
+    attn_implementation="eager"
+).to(DEVICE)
+florence_model.eval()
+print('[OK] Image-to-Text model loaded!')
+
+print('\n' + '=' * 60)
+print('All models ready!')
+print('  Text-to-Text   → Gemini API (cloud)')
+print('  Text-to-Image  → Stable Diffusion (local GPU)')
+print('  Image-to-Image → Stable Diffusion (local GPU)')
+print('  Image-to-Text  → Florence-2 (local GPU)')
+print('=' * 60)
+
+# ==========================================
+# STEP 4: FLASK WEB SERVER
 # ==========================================
 app = Flask(__name__)
 CORS(app)
@@ -61,20 +247,26 @@ CORS(app)
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({
-        'status': 'ok', 
-        'device': 'cloud-gemini', 
-        'models': ['gemini-2.5-flash-lite', 'imagen-3.0-generate-002']
+        'status': 'ok',
+        'device': DEVICE,
+        'models': [
+            'gemini-2.5-flash-lite (text, cloud)',
+            'stable-diffusion (txt2img, local)',
+            'stable-diffusion (img2img, local)',
+            'florence-2 (img2text, local)'
+        ]
     })
 
 @app.route('/generate-text', methods=['POST'])
 def generate_text():
+    """Text generation via Gemini API (no local model needed)"""
     data = request.json or {}
     prompt = data.get('prompt', '')
     system_prompt = data.get('system_prompt', 'You are a helpful marketing assistant.')
     max_tokens = int(data.get('max_tokens', 500))
     temperature = float(data.get('temperature', 0.7))
 
-    if not prompt: 
+    if not prompt:
         return jsonify({'error': 'prompt is required'}), 400
 
     try:
@@ -94,45 +286,32 @@ def generate_text():
 
 @app.route('/generate-image', methods=['POST'])
 def generate_image():
+    """Text-to-Image via LOCAL Stable Diffusion model"""
     data = request.json or {}
     prompt = data.get('prompt', '')
+    negative_prompt = data.get('negative_prompt', '')
+    steps = int(data.get('steps', 25))
     width = int(data.get('width', 512))
     height = int(data.get('height', 512))
 
-    if not prompt: 
+    if not prompt:
         return jsonify({'error': 'prompt is required'}), 400
 
-    # Determine closest aspect ratio for Imagen 3
-    aspect_ratio = '1:1'
-    if width > height:
-        if width / height >= 1.5:
-            aspect_ratio = '16:9'
-        else:
-            aspect_ratio = '4:3'
-    elif height > width:
-        if height / width >= 1.5:
-            aspect_ratio = '9:16'
-        else:
-            aspect_ratio = '3:4'
-
     try:
-        response = client.models.generate_images(
-            model='imagen-3.0-generate-002',
-            prompt=prompt,
-            config=types.GenerateImagesConfig(
-                number_of_images=1,
-                output_mime_type='image/png',
-                aspect_ratio=aspect_ratio
+        with torch.no_grad():
+            result = sd_pipeline(
+                prompt,
+                negative_prompt=negative_prompt,
+                num_inference_steps=steps,
+                width=width,
+                height=height
             )
-        )
-        image = response.generated_images[0].image
-        
-        # Encode image to Base64
+        image = result.images[0]
         buf = io.BytesIO()
         image.save(buf, format='PNG')
         return jsonify({
-            'image_base64': base64.b64encode(buf.getvalue()).decode('utf-8'), 
-            'model': 'imagen-3.0-generate-002'
+            'image_base64': base64.b64encode(buf.getvalue()).decode('utf-8'),
+            'model': 'stable-diffusion-genmark'
         })
     except Exception as e:
         import traceback; print(traceback.format_exc())
@@ -140,18 +319,21 @@ def generate_image():
 
 @app.route('/image-to-image', methods=['POST'])
 def image_to_image():
+    """Image editing via LOCAL Stable Diffusion img2img pipeline"""
     data = request.json or {}
     image_base64 = data.get('image_base64', '')
     image_url = data.get('image_url', '')
     prompt = data.get('prompt', '')
+    negative_prompt = data.get('negative_prompt', '')
+    strength = float(data.get('strength', 0.75))
+    steps = int(data.get('steps', 25))
 
-    if not prompt: 
+    if not prompt:
         return jsonify({'error': 'prompt is required'}), 400
-    if not image_base64 and not image_url: 
+    if not image_base64 and not image_url:
         return jsonify({'error': 'image data required'}), 400
 
     try:
-        # Load image via Base64 or Fallback URL
         if image_base64:
             image_bytes = base64.b64decode(image_base64)
             init_image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
@@ -159,42 +341,22 @@ def image_to_image():
             resp = req_lib.get(image_url, timeout=30)
             init_image = Image.open(io.BytesIO(resp.content)).convert('RGB')
 
-        # 1. Use Gemini 2.5 Flash to describe the original image
-        describe_prompt = (
-            "Describe this image in detail, including layout, objects, colors, and style, "
-            "so that a text-to-image model can recreate a similar visual."
-        )
-        desc_response = client.models.generate_content(
-            model='gemini-2.5-flash-lite',
-            contents=[init_image, describe_prompt]
-        )
-        image_description = desc_response.text
+        init_image = init_image.resize((512, 512))
 
-        # 2. Generate a new prompt merging the description and user edit prompt
-        enhanced_prompt = (
-            f"Based on this image description: '{image_description}'. "
-            f"Modify the image according to this instruction: '{prompt}'. "
-            "Produce a high-quality, professional marketing visual."
-        )
-
-        # 3. Generate the modified image using Imagen 3
-        response = client.models.generate_images(
-            model='imagen-3.0-generate-002',
-            prompt=enhanced_prompt,
-            config=types.GenerateImagesConfig(
-                number_of_images=1,
-                output_mime_type='image/png',
-                aspect_ratio='1:1'
+        with torch.no_grad():
+            result = sd_img2img_pipeline(
+                prompt=prompt,
+                image=init_image,
+                negative_prompt=negative_prompt,
+                num_inference_steps=steps,
+                strength=strength
             )
-        )
-        image = response.generated_images[0].image
-        
-        # Encode image to Base64
+        output_image = result.images[0]
         buf = io.BytesIO()
-        image.save(buf, format='PNG')
+        output_image.save(buf, format='PNG')
         return jsonify({
-            'image_base64': base64.b64encode(buf.getvalue()).decode('utf-8'), 
-            'model': 'imagen-3.0-generate-002'
+            'image_base64': base64.b64encode(buf.getvalue()).decode('utf-8'),
+            'model': 'stable-diffusion-img2img-genmark'
         })
     except Exception as e:
         import traceback; print(traceback.format_exc())
@@ -202,30 +364,21 @@ def image_to_image():
 
 @app.route('/image-to-text', methods=['POST'])
 def image_to_text():
+    """Image analysis via LOCAL Florence-2 model"""
     data = request.json or {}
     image_url = data.get('image_url', '')
     image_base64 = data.get('image_base64', '')
     task = data.get('prompt', '<DETAILED_CAPTION>')
 
-    if not image_url and not image_base64: 
+    valid_tasks = [
+        '<CAPTION>', '<DETAILED_CAPTION>', '<MORE_DETAILED_CAPTION>',
+        '<OD>', '<DENSE_REGION_CAPTION>', '<REGION_PROPOSAL>',
+        '<OCR>', '<OCR_WITH_REGION>'
+    ]
+    if not (task in valid_tasks or task.startswith('<VQA>')):
+        task = '<DETAILED_CAPTION>'
+    if not image_url and not image_base64:
         return jsonify({'error': 'image data required'}), 400
-
-    # Map Florence-2 tags to Gemini prompts
-    gemini_prompt = "Describe this image in detail."
-    if task == '<CAPTION>':
-        gemini_prompt = "Provide a short, concise, one-sentence caption for this image."
-    elif task == '<DETAILED_CAPTION>':
-        gemini_prompt = "Provide a detailed description of this image."
-    elif task == '<MORE_DETAILED_CAPTION>':
-        gemini_prompt = "Provide a highly detailed, comprehensive description of everything in this image."
-    elif task == '<OCR>' or task == '<OCR_WITH_REGION>':
-        gemini_prompt = "Extract and write all text visible in this image."
-    elif task == '<OD>' or task == '<REGION_PROPOSAL>':
-        gemini_prompt = "List all key objects visible in this image and their approximate locations."
-    elif task == '<DENSE_REGION_CAPTION>':
-        gemini_prompt = "Identify and describe the different regions and components of this image."
-    elif task.startswith('<VQA>'):
-        gemini_prompt = task.replace('<VQA>', '').strip()
 
     try:
         if image_base64:
@@ -235,26 +388,43 @@ def image_to_text():
             resp = req_lib.get(image_url, timeout=30)
             image = Image.open(io.BytesIO(resp.content)).convert('RGB')
 
-        response = client.models.generate_content(
-            model='gemini-2.5-flash-lite',
-            contents=[image, gemini_prompt]
+        inputs = florence_processor(text=task, images=image, return_tensors='pt').to(DEVICE, DTYPE)
+        with torch.no_grad():
+            generated_ids = florence_model.generate(
+                input_ids=inputs['input_ids'],
+                pixel_values=inputs['pixel_values'],
+                max_new_tokens=512,
+                num_beams=3
+            )
+        generated_text = florence_processor.batch_decode(generated_ids, skip_special_tokens=False)[0]
+
+        parse_task = '<VQA>' if task.startswith('<VQA>') else task
+        parsed = florence_processor.post_process_generation(
+            generated_text, task=parse_task, image_size=(image.width, image.height)
         )
-        
-        return jsonify({'content': response.text, 'model': 'gemini-2.5-flash-lite'})
+        content = parsed.get(parse_task, generated_text)
+        return jsonify({
+            'content': str(content) if isinstance(content, dict) else content,
+            'model': 'florence-2-genmark'
+        })
     except Exception as e:
         import traceback; print(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
 
 # ==========================================
-# STEP 3: NGROK TUNNEL & SERVER RUN
+# STEP 5: NGROK TUNNEL & SERVER RUN
 # ==========================================
 conf.get_default().auth_token = NGROK_TOKEN
 ngrok.kill()
 PORT = 8080
 
-flask_thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=PORT, use_reloader=False, threaded=True), daemon=True)
+flask_thread = threading.Thread(
+    target=lambda: app.run(host='0.0.0.0', port=PORT, use_reloader=False, threaded=True),
+    daemon=True
+)
 flask_thread.start()
 time.sleep(2)
+
 try:
     tunnel = ngrok.connect(PORT, 'http', hostname='aurelia-duodecastyle-conchita.ngrok-free.dev')
     PUBLIC_URL = tunnel.public_url
