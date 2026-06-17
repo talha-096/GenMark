@@ -25,6 +25,8 @@ boto3
 openai
 anthropic
 google-generativeai
+google-genai
+Pillow
 # llama-cpp-python
 # transformers
 # torch
