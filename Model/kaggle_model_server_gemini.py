@@ -241,9 +241,14 @@ PORT = 8080
 flask_thread = threading.Thread(target=lambda: app.run(host='0.0.0.0', port=PORT, use_reloader=False, threaded=True), daemon=True)
 flask_thread.start()
 time.sleep(2)
-
-tunnel = ngrok.connect(PORT, 'http', hostname='aurelia-duodecastyle-conchita.ngrok-free.dev')
-PUBLIC_URL = tunnel.public_url
+try:
+    tunnel = ngrok.connect(PORT, 'http', hostname='aurelia-duodecastyle-conchita.ngrok-free.dev')
+    PUBLIC_URL = tunnel.public_url
+except Exception as e:
+    print(f"[WARN] Failed to connect to custom hostname: {e}")
+    print("[INFO] Starting ngrok tunnel with a random subdomain...")
+    tunnel = ngrok.connect(PORT, 'http')
+    PUBLIC_URL = tunnel.public_url
 
 print('=' * 60)
 print(f'ngrok tunnel URL: {PUBLIC_URL}')
