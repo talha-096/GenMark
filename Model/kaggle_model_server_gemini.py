@@ -14,7 +14,7 @@ try:
     from google import genai
     from google.genai import types
 except ImportError:
-    print("⏳ Installing google-genai library...")
+    print("[INFO] Installing google-genai library...")
     os.system("pip install -q google-genai")
     from google import genai
     from google.genai import types
@@ -25,18 +25,18 @@ except ImportError:
 # Setup Gemini API key
 GEMINI_API_KEY = "AIzaSyDr94kmVSicb0EPvKgceDXgXv6p4xasNWo"
 client = genai.Client(api_key=GEMINI_API_KEY)
-print("✅ Gemini API Client initialized successfully!")
+print("[OK] Gemini API Client initialized successfully!")
 
 # Setup Ngrok Auth Token
 try:
     from kaggle_secrets import UserSecretsClient
     secrets = UserSecretsClient()
     NGROK_TOKEN = secrets.get_secret('NGROK_AUTH_TOKEN')
-    print('✅ ngrok token loaded from Kaggle Secrets')
+    print('[OK] ngrok token loaded from Kaggle Secrets')
 except Exception:
     # Hardcoded fallback
     NGROK_TOKEN = '3BnR5jH3mHvw2BcS28rTHldeEPz_6dsDVyQEUxsbLtA4DLe1m'
-    print('⚠️ Using hardcoded ngrok token — use Kaggle Secrets in production!')
+    print('[WARN] Using hardcoded ngrok token -- use Kaggle Secrets in production!')
 
 # ==========================================
 # STEP 2: FLASK WEB SERVER
@@ -246,12 +246,12 @@ tunnel = ngrok.connect(PORT, 'http', hostname='aurelia-duodecastyle-conchita.ngr
 PUBLIC_URL = tunnel.public_url
 
 print('=' * 60)
-print(f'🌐 ngrok tunnel URL: {PUBLIC_URL}')
+print(f'ngrok tunnel URL: {PUBLIC_URL}')
 print('=' * 60)
-print('\n📋 COPY THE URL ABOVE and paste it into your backend .env file:')
+print('\nCOPY THE URL ABOVE and paste it into your backend .env file:')
 print(f'   KAGGLE_MODEL_URL={PUBLIC_URL}\n')
 
-print('🔄 Server is running. Status will be printed every 5 minutes...')
+print('Server is running. Status will be printed every 5 minutes...')
 keep_running = True
 iteration = 0
 
@@ -259,7 +259,7 @@ while keep_running:
     try:
         iteration += 1
         r = req_lib.get(f'http://localhost:{PORT}/health', timeout=5)
-        print(f'[{iteration * 5:4d} min] ✅ Server {r.json().get("status", "unknown")} | URL: {PUBLIC_URL}')
+        print(f'[{iteration * 5:4d} min] OK Server {r.json().get("status", "unknown")} | URL: {PUBLIC_URL}')
     except Exception as e:
-        print(f'[{iteration * 5:4d} min] ⚠️  {e}')
+        print(f'[{iteration * 5:4d} min] WARN {e}')
     time.sleep(300)
