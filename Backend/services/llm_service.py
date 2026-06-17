@@ -54,9 +54,8 @@ class LLMService:
                 response.raise_for_status()
                 data = response.json()
                 content = data.get("content", "")
-                for stop_word in ["<end_of_turn>", "<start_of_turn>", "</start_of_turn>", "<bos>", "<eos>"]:
-                    if stop_word in content:
-                        content = content.split(stop_word)[0].strip()
+                content = self._extract_generation(content, prompt, system_prompt)
+                content = self._clean_stop_words(content)
                 return {
                     "content": content,
                     "model": f"kaggle-{data.get('model', 'mistral')}",
@@ -755,17 +754,8 @@ The content you produce must:
             )
             
             generated_text = outputs[0]['generated_text']
-            
-            # Clean up the output to only return the generated part if prompt is still included
-            if generated_text.startswith(formatted_prompt):
-                generated_text = generated_text[len(formatted_prompt):].strip()
-            elif "[INST]" in generated_text and "[/INST]" in generated_text:
-                generated_text = generated_text.split("[/INST]")[-1].strip()
-                
-            # Remove any trailing stop tokens
-            for stop_word in ["<end_of_turn>", "<start_of_turn>", "</start_of_turn>", "<bos>", "<eos>"]:
-                if stop_word in generated_text:
-                    generated_text = generated_text.split(stop_word)[0].strip()
+            generated_text = self._extract_generation(generated_text, formatted_prompt, system_prompt)
+            generated_text = self._clean_stop_words(generated_text)
             
             return {
                 "content": generated_text,
@@ -775,6 +765,41 @@ The content you produce must:
             }
         except Exception as e:
             return {"error": f"Transformers generation error: {str(e)}"}
+
+    def _extract_generation(self, content, prompt=None, system_prompt=None):
+        """Extract only the model's generated response from the full text output,
+        stripping the system/user prompts and any instruction/chat delimiters.
+        """
+        delimiters = [
+            "[/INST]",
+            "<start_of_turn>model\n",
+            "<start_of_turn>model",
+            "<start_of_turn> model\n",
+            "<start_of_turn> model",
+            "<|start_header_id|>assistant<|end_header_id|>\n\n",
+            "<|start_header_id|>assistant<|end_header_id|>",
+            "Assistant:",
+            "Response:"
+        ]
+        
+        for delimiter in delimiters:
+            if delimiter in content:
+                content = content.split(delimiter)[-1].strip()
+                return content
+        
+        if prompt and prompt in content:
+            content = content.replace(prompt, "").strip()
+        if system_prompt and system_prompt in content:
+            content = content.replace(system_prompt, "").strip()
+            
+        return content
+
+    def _clean_stop_words(self, content):
+        """Clean any trailing or leading stop tokens or tags from the content."""
+        for stop_word in ["<end_of_turn>", "<start_of_turn>", "</start_of_turn>", "<bos>", "<eos>", "<|eot_id|>", "<|im_end|>", "model\n", "assistant\n"]:
+            if stop_word in content:
+                content = content.split(stop_word)[0].strip()
+        return content
 
 # Singleton instance
 llm_service = LLMService()
