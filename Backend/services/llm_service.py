@@ -229,9 +229,9 @@ class LLMService:
         # Fallback 1: Hugging Face Serverless API (Free)
         if self.hf_token:
             enhanced_prompt = self._enhance_image_prompt(prompt, brand_kit)
-            # Realistic Vision V5.1 or standard Stable Diffusion 1.5
-            model_id = "SG161222/Realistic_Vision_V5.1_noVAE"
-            api_url = f"https://api-inference.huggingface.co/models/{model_id}"
+            # Use stable-diffusion-3-medium-diffusers via the router endpoint
+            model_id = "stabilityai/stable-diffusion-3-medium-diffusers"
+            api_url = f"https://router.huggingface.co/hf-inference/models/{model_id}"
             headers = {"Authorization": f"Bearer {self.hf_token}"}
             
             try:
@@ -245,21 +245,15 @@ class LLMService:
                     }
                 }
                 response = requests.post(api_url, headers=headers, json=payload)
-                if response.status_code != 200:
-                    # Fallback to runwayml/stable-diffusion-v1-5 if Realistic Vision is sleeping/unavailable
-                    fallback_url = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
-                    response = requests.post(fallback_url, headers=headers, json=payload)
-                
                 response.raise_for_status()
                 image_bytes = response.content
-                
                 
                 # Save image (S3 or local storage)
                 image_url = self._save_image_bytes(image_bytes, "img")
                 if image_url:
                     return {
                         "image_url": image_url,
-                        "model": "realistic-vision-v5.1-hf",
+                        "model": "stable-diffusion-3-medium-hf",
                         "type": "image",
                         "brand_applied": brand_kit is not None,
                         "enhanced_prompt": enhanced_prompt
@@ -268,6 +262,7 @@ class LLMService:
                     return {"error": "Failed to save generated image"}
             except Exception as e:
                 print(f"Hugging Face Text-to-Image inference failed: {e}")
+
 
         # Fallback 2: OpenAI API (Paid)
         if self.client:
