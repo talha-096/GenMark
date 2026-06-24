@@ -59,10 +59,13 @@ Backend/test_profile.py
 mongodb_data/
 mongodb_data_v2/
 
-# [Custom Models & Large Files]
-Model/
-*.safetensors
-*.bin
+# [Custom Models & Large Files — track scripts, ignore weights]
+!Model/
+Model/Text to text Model/
+Model/Text to image Model/
+Model/Image to text Model/
+!Model/*.py
+!Model/dataset-metadata.json
 *.pt
 *.onnx
 

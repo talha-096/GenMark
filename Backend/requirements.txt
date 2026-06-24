@@ -21,18 +21,8 @@ requests
 python-jose[cryptography]==3.3.0
 boto3
 
-# AI Integration
-openai
-anthropic
-google-generativeai
-google-genai
+# AI Integration (Kaggle-only mode — no direct API keys needed)
 Pillow
-# llama-cpp-python
-# transformers
-# torch
-# accelerate
-# safetensors
-# bitsandbytes
 gunicorn
 
 # Testing (CI/CD)

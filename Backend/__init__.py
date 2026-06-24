@@ -75,17 +75,44 @@ def create_app(config_name='default'):
 
     @app.route('/api/health')
     def health_check():
+        import requests as req_lib
+
+        # ── Database check ─────────────────────────────────────────────
         try:
-            # Ping the database
             db.cx.admin.command('ping')
             db_status = 'connected'
         except Exception as e:
             db_status = f'disconnected: {str(e)}'
-            
+
+        # ── Kaggle Model Server check ──────────────────────────────────
+        kaggle_url = app.config.get('KAGGLE_MODEL_URL')
+        if kaggle_url:
+            try:
+                resp = req_lib.get(
+                    f"{kaggle_url}/health",
+                    timeout=10,
+                    verify=False,
+                    headers={"ngrok-skip-browser-warning": "1"}
+                )
+                resp.raise_for_status()
+                kaggle_data = resp.json()
+                kaggle_status = 'connected'
+                kaggle_models = kaggle_data.get('models', [])
+            except Exception as e:
+                kaggle_status = f'unreachable: {str(e)}'
+                kaggle_models = []
+        else:
+            kaggle_status = 'not_configured'
+            kaggle_models = []
+
+        all_healthy = (db_status == 'connected' and kaggle_status == 'connected')
+
         return {
-            'status': 'healthy' if db_status == 'connected' else 'degraded',
+            'status': 'healthy' if all_healthy else 'degraded',
             'db': db_status,
-            'version': '1.0.1'
+            'kaggle_model_server': kaggle_status,
+            'kaggle_models': kaggle_models,
+            'version': '1.1.0'
         }
 
     @app.errorhandler(Exception)
